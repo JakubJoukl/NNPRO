@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "RESET_TOKEN")
 public class ResetToken {
 
     @Id

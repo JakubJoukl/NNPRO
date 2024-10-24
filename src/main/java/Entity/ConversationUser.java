@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
+@Table(name = "CONVERSATION_USER")
 public class ConversationUser {
     @EmbeddedId
     private ConversationUserId conversationUserId;

@@ -6,6 +6,7 @@ import org.springframework.lang.NonNull;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "PUBLIC_KEY")
 public class PublicKey {
 
     @Id
