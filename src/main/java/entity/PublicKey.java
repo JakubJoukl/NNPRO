@@ -1,7 +1,6 @@
-package Entity;
+package entity;
 
 import jakarta.persistence.*;
-import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 
