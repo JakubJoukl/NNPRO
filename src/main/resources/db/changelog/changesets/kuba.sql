@@ -1,46 +1,32 @@
--- liquibase formatted sql
+--liquibase formatted sql
 
--- changeset Kuba:1729952375256-1
-CREATE TABLE CONVERSATION (conversationId INT NOT NULL, CONSTRAINT CONVERSATIONPK PRIMARY KEY (conversationId));
+-- changeset Kuba:1729957651903-1
+CREATE TABLE conversation (conversation_id INT NOT NULL, CONSTRAINT conversationPK PRIMARY KEY (conversation_id));
 
--- changeset Kuba:1729952375256-2
-CREATE TABLE CONVERSATION_USER (conversationId INT NOT NULL, userId INT NOT NULL, conversation_id INT NOT NULL, user_id INT NOT NULL, CONSTRAINT CONVERSATION_USERPK PRIMARY KEY (conversationId, userId));
+CREATE TABLE conversation_user (conversation_id INT NOT NULL, user_id INT NOT NULL, CONSTRAINT conversation_userPK PRIMARY KEY (conversation_id, user_id));
 
--- changeset Kuba:1729952375256-3
-CREATE TABLE MESSAGE (messageId INT AUTO_INCREMENT NOT NULL, receiver_id INT NOT NULL, sender_id INT NOT NULL, CONSTRAINT MESSAGEPK PRIMARY KEY (messageId));
+CREATE TABLE message (message_id INT AUTO_INCREMENT NOT NULL, receiver_id INT NOT NULL, sender_id INT NOT NULL, CONSTRAINT messagePK PRIMARY KEY (message_id));
 
--- changeset Kuba:1729952375256-4
-CREATE TABLE PUBLIC_KEY (publicKeyId INT AUTO_INCREMENT NOT NULL, creationDate datetime(6) NULL, fingerprint VARCHAR(255) NULL, `key` VARCHAR(255) NULL, valid BIT NULL, owner_id INT NOT NULL, CONSTRAINT PUBLIC_KEYPK PRIMARY KEY (publicKeyId));
+CREATE TABLE public_key (public_key_id INT AUTO_INCREMENT NOT NULL, creation_date datetime(6) NULL, fingerprint VARCHAR(255) NULL, `key` VARCHAR(255) NULL, valid BIT NULL, owner_id INT NOT NULL, CONSTRAINT public_keyPK PRIMARY KEY (public_key_id));
 
--- changeset Kuba:1729952375256-5
-CREATE TABLE RESET_TOKEN (resetTokenId INT AUTO_INCREMENT NOT NULL, expirationDate datetime(6) NULL, token VARCHAR(255) NULL, user_userId INT NULL, CONSTRAINT RESET_TOKENPK PRIMARY KEY (resetTokenId));
+CREATE TABLE reset_token (reset_token_id INT AUTO_INCREMENT NOT NULL, expiration_date datetime(6) NULL, token VARCHAR(255) NULL, valid BIT NULL, user_user_id INT NULL, CONSTRAINT reset_tokenPK PRIMARY KEY (reset_token_id));
 
--- changeset Kuba:1729952375256-7
-CREATE TABLE USER (userId INT AUTO_INCREMENT NOT NULL, email VARCHAR(255) NULL, hashedPassword VARCHAR(255) NULL, salt VARCHAR(255) NULL, username VARCHAR(255) NULL, CONSTRAINT USERPK PRIMARY KEY (userId));
+CREATE TABLE user (user_id INT AUTO_INCREMENT NOT NULL, email VARCHAR(255) NULL, password VARCHAR(255) NULL, salt VARCHAR(255) NULL, username VARCHAR(255) NULL, CONSTRAINT userPK PRIMARY KEY (user_id));
 
--- changeset Kuba:1729952375256-8
-CREATE TABLE USER_CONTACT (USER_ID INT NOT NULL, CONTACT_USER_ID INT NOT NULL);
+CREATE TABLE user_contact (user_id INT NOT NULL, contact_user_id INT NOT NULL);
 
--- changeset Kuba:1729952375256-9
-ALTER TABLE PUBLIC_KEY ADD CONSTRAINT FK85qcsnhq5xx6l4n5kga3mdeh0 FOREIGN KEY (owner_id) REFERENCES USER (userId);
+ALTER TABLE reset_token ADD CONSTRAINT FK6himxjdq7jb374984mt2w47cn FOREIGN KEY (user_user_id) REFERENCES user (user_id);
 
--- changeset Kuba:1729952375256-10
-ALTER TABLE RESET_TOKEN ADD CONSTRAINT FKdvihxa886stkutdp2yjka3mn0 FOREIGN KEY (user_userId) REFERENCES USER (userId);
+ALTER TABLE message ADD CONSTRAINT FK86f0kc2mt26ifwupnivu6v8oa FOREIGN KEY (receiver_id) REFERENCES user (user_id);
 
--- changeset Kuba:1729952375256-11
-ALTER TABLE MESSAGE ADD CONSTRAINT FKfg8omticr9rpbyikv2g4tc6sw FOREIGN KEY (sender_id) REFERENCES USER (userId);
+ALTER TABLE user_contact ADD CONSTRAINT FK9fm1vrfyjcs735xlykhnedyd7 FOREIGN KEY (user_id) REFERENCES user (user_id);
 
--- changeset Kuba:1729952375256-12
-ALTER TABLE CONVERSATION_USER ADD CONSTRAINT FKg8ig39uy9j27tlnv81c2p2dee FOREIGN KEY (conversation_id) REFERENCES CONVERSATION (conversationId);
+ALTER TABLE conversation_user ADD CONSTRAINT FKb71b5q60yd0bfc1eb8fgwm4sk FOREIGN KEY (conversation_id) REFERENCES conversation (conversation_id);
 
--- changeset Kuba:1729952375256-13
-ALTER TABLE USER_CONTACT ADD CONSTRAINT FKj3np7d2obo6cj32u99yvq4cvr FOREIGN KEY (USER_ID) REFERENCES USER (userId);
+ALTER TABLE message ADD CONSTRAINT FKcnj2qaf5yc36v2f90jw2ipl9b FOREIGN KEY (sender_id) REFERENCES user (user_id);
 
--- changeset Kuba:1729952375256-14
-ALTER TABLE MESSAGE ADD CONSTRAINT FKjj6ikosoylvp15tpkrnbv4pgq FOREIGN KEY (receiver_id) REFERENCES USER (userId);
+ALTER TABLE public_key ADD CONSTRAINT FKh0vu8klgwmqjfys2jb69vqx9h FOREIGN KEY (owner_id) REFERENCES user (user_id);
 
--- changeset Kuba:1729952375256-15
-ALTER TABLE USER_CONTACT ADD CONSTRAINT FKpqiosmeeaclfod4ql00utld0g FOREIGN KEY (CONTACT_USER_ID) REFERENCES USER (userId);
+ALTER TABLE conversation_user ADD CONSTRAINT FKhjie8c93f6ctc27ujqg84lx0f FOREIGN KEY (user_id) REFERENCES user (user_id);
 
--- changeset Kuba:1729952375256-16
-ALTER TABLE CONVERSATION_USER ADD CONSTRAINT FKt6p5xaia5k6rkdu1hqto5x0qb FOREIGN KEY (user_id) REFERENCES USER (userId);
+ALTER TABLE user_contact ADD CONSTRAINT FKw0i4lv7jigx9xt7iq6gyxp4s FOREIGN KEY (contact_user_id) REFERENCES user (user_id);

@@ -1,4 +1,4 @@
-package entity;
+package com.example.nnprorocnikovyprojekt.entity;
 
 import jakarta.persistence.*;
 

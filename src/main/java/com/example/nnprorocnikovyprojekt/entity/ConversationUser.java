@@ -1,4 +1,4 @@
-package entity;
+package com.example.nnprorocnikovyprojekt.entity;
 
 import jakarta.persistence.*;
 
@@ -12,10 +12,12 @@ public class ConversationUser {
     private ConversationUserId conversationUserId;
 
     @ManyToOne
+    @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
+    @MapsId("conversationId")
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 

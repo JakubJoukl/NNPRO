@@ -1,4 +1,4 @@
-package entity;
+package com.example.nnprorocnikovyprojekt.entity;
 
 import jakarta.persistence.*;
 
@@ -12,12 +12,28 @@ public class ResetToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer resetTokenId;
 
+    @Column
     private String token;
 
+    @Column
     private LocalDateTime expirationDate;
+
+    @Column
+    private boolean valid;
 
     @ManyToOne
     private User user;
+
+    public ResetToken(User user, String token) {
+        this.user = user;
+        this.valid = true;
+        this.expirationDate = LocalDateTime.now().plusHours(1);
+        this.token = token;
+    }
+
+    protected ResetToken() {
+
+    }
 
     public Integer getResetTokenId() {
         return resetTokenId;
@@ -49,5 +65,13 @@ public class ResetToken {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
     }
 }
