@@ -63,7 +63,7 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>4.28.0</version>
+            <version>4.26.0</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate.orm</groupId>
@@ -87,7 +87,7 @@
                 <!-- mvn liquibase:diff -->
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
-                <version>4.28.0</version>
+                <version>4.26.0</version>
                 <configuration>
                     <propertyFile>src/main/resources/liquibase.properties</propertyFile>
                 </configuration>
@@ -95,7 +95,7 @@
                     <dependency>
                         <groupId>org.liquibase</groupId>
                         <artifactId>liquibase-core</artifactId>
-                        <version>4.28.0</version>
+                        <version>4.26.0</version>
                     </dependency>
                     <dependency>
                         <groupId>com.mysql</groupId>
@@ -105,7 +105,7 @@
                     <dependency>
                         <groupId>org.liquibase.ext</groupId>
                         <artifactId>liquibase-hibernate6</artifactId>
-                        <version>4.28.0</version>
+                        <version>4.26.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.hibernate.orm</groupId>
