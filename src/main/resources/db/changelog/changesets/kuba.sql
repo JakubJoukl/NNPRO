@@ -30,3 +30,8 @@ ALTER TABLE public_key ADD CONSTRAINT FKh0vu8klgwmqjfys2jb69vqx9h FOREIGN KEY (o
 ALTER TABLE conversation_user ADD CONSTRAINT FKhjie8c93f6ctc27ujqg84lx0f FOREIGN KEY (user_id) REFERENCES user (user_id);
 
 ALTER TABLE user_contact ADD CONSTRAINT FKw0i4lv7jigx9xt7iq6gyxp4s FOREIGN KEY (contact_user_id) REFERENCES user (user_id);
+
+-- changeset Kuba:1730060028685-1
+CREATE TABLE verification_code (verification_code_id INT NOT NULL, expiration_date datetime(6) NULL, valid BIT NULL, verification_code VARCHAR(255) NULL, user_id INT NOT NULL, CONSTRAINT verification_codePK PRIMARY KEY (verification_code_id));
+
+ALTER TABLE verification_code ADD CONSTRAINT FKgy5dhio3a6c9me7s0x9v1y4d2 FOREIGN KEY (user_id) REFERENCES user (user_id);
