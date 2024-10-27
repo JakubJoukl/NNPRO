@@ -1,11 +1,9 @@
 package com.example.nnprorocnikovyprojekt.dtos.user;
 
-public class RegistrationDto {
+public class VerificationDto {
     private String username;
 
-    private String password;
-
-    private String email;
+    private String verificationCode;
 
     private String captchaToken;
 
@@ -17,20 +15,12 @@ public class RegistrationDto {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
+    public String getVerificationCode() {
+        return verificationCode;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
     }
 
     public String getCaptchaToken() {
@@ -41,4 +31,3 @@ public class RegistrationDto {
         this.captchaToken = captchaToken;
     }
 }
-

@@ -35,6 +35,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     private List<ResetToken> resetTokens;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    private List<VerificationCode> verificationCodes;
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(name = "USER_CONTACT", joinColumns =
     @JoinColumn(name = "USER_ID"), inverseJoinColumns = @JoinColumn(name = "CONTACT_USER_ID"))
@@ -120,6 +123,14 @@ public class User implements UserDetails {
 
     public void setConversationUsers(List<ConversationUser> conversationUsers) {
         this.conversationUsers = conversationUsers;
+    }
+
+    public List<VerificationCode> getVerificationCodes() {
+        return verificationCodes;
+    }
+
+    public void setVerificationCodes(List<VerificationCode> verificationCodes) {
+        this.verificationCodes = verificationCodes;
     }
 
     /** implemented methods **/

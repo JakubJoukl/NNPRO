@@ -1,12 +1,13 @@
 package com.example.nnprorocnikovyprojekt.entity;
 
+import com.example.nnprorocnikovyprojekt.entity.interfaces.WithExpiration;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "RESET_TOKEN")
-public class ResetToken {
+public class ResetToken implements WithExpiration {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,10 +52,12 @@ public class ResetToken {
         this.token = token;
     }
 
+    @Override
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }
 
+    @Override
     public void setExpirationDate(LocalDateTime expirationDate) {
         this.expirationDate = expirationDate;
     }
@@ -67,10 +70,12 @@ public class ResetToken {
         this.user = user;
     }
 
+    @Override
     public boolean isValid() {
         return valid;
     }
 
+    @Override
     public void setValid(boolean valid) {
         this.valid = valid;
     }

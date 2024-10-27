@@ -2,6 +2,7 @@ package com.example.nnprorocnikovyprojekt.services;
 
 import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
+import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
 import com.sun.mail.util.MailSSLSocketFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 import java.util.UUID;
@@ -25,7 +27,6 @@ public class EmailService {
     private UserService userService;
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MMM.yyyy HH:mm");
-
     Properties properties = System.getProperties();
 
     //Heslo: akxx jzcv whcy zptj
@@ -48,9 +49,37 @@ public class EmailService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void sendResetTokenEmail(User user)  {
+    public VerificationCode sendVerificationCodeEmail(User user){
         if(user == null) throw new RuntimeException("User is null");
 
+        Session session = initiateSession();
+
+        VerificationCode verificationCode = userService.generateVerificationCodeForUser(user);
+
+        try {
+            MimeMessage message = new MimeMessage(session);
+            String recipient = user.getEmail();
+            String subject = "Verification code for secure chat";
+            String emailHtmlContent = "<p>Your verification code is " + verificationCode + "<p>";
+
+            sendEmail(message, recipient, subject, emailHtmlContent);
+        } catch (MessagingException mex) {
+            return null;
+        }
+        return verificationCode;
+    }
+
+    private void sendEmail(MimeMessage message, String recipient, String subject, String emailHtmlContent) throws MessagingException {
+        message.setFrom(new InternetAddress("semestralkaa@gmail.com"));
+        message.setRecipients(MimeMessage.RecipientType.TO, recipient);
+        message.setSubject(subject);
+        String htmlContent = emailHtmlContent;
+        message.setContent(htmlContent, "text/html; charset=utf-8");
+        Transport.send(message);
+        System.out.println("Sent message successfully....");
+    }
+
+    private Session initiateSession() {
         Session session = Session.getInstance(properties, new javax.mail.Authenticator() {
 
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -61,32 +90,29 @@ public class EmailService {
         });
 
         session.setDebug(true);
+        return session;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public boolean sendResetTokenEmail(User user)  {
+        if(user == null) throw new RuntimeException("User is null");
+
+        Session session = initiateSession();
 
         try {
             // Create a default MimeMessage object.
             MimeMessage message = new MimeMessage(session);
 
-            UUID uuid = UUID.randomUUID();
-            String token = uuid.toString();
+            ResetToken resetToken = userService.generateResetTokenForUser(user);
 
-            userService.deactivateUserResetTokens(user);
+            String subject = "Test email reset hesla pro " + user.getEmail();
+            String emailHtmlContent = "<h1>Reset hesla</h1><p>Token pro reset hesla je " + resetToken.getToken() + " a platí do " + formatter.format(resetToken.getExpirationDate()) + "</p>";
 
-            ResetToken resetToken = new ResetToken(user, token);
-            user.getResetTokens().add(resetToken);
-            userService.saveResetToken(resetToken);
-
-            message.setFrom(new InternetAddress("semestralkaa@gmail.com"));
-            message.setRecipients(MimeMessage.RecipientType.TO, user.getEmail());
-            message.setSubject("Test email reset hesla pro " + user.getEmail());
-
-            String htmlContent = "<h1>Reset hesla</h1><p>Token pro reset hesla je " + token +
-                    " a platí do " + formatter.format(resetToken.getExpirationDate()) + "</p>";
-            message.setContent(htmlContent, "text/html; charset=utf-8");
-            Transport.send(message);
-            System.out.println("Sent message successfully....");
+            sendEmail(message, user.getEmail(), subject, emailHtmlContent);
         } catch (MessagingException mex) {
-            mex.printStackTrace();
+            return false;
         }
 
+        return true;
     }
 }

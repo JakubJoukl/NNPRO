@@ -5,6 +5,8 @@ public class LoginDto {
 
     private String password;
 
+    private String captchaToken;
+
     public String getUsername() {
         return username;
     }
@@ -19,5 +21,13 @@ public class LoginDto {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getCaptchaToken() {
+        return captchaToken;
+    }
+
+    public void setCaptchaToken(String captchaToken) {
+        this.captchaToken = captchaToken;
     }
 }

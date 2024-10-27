@@ -4,8 +4,11 @@ package com.example.nnprorocnikovyprojekt.services;
 import com.example.nnprorocnikovyprojekt.dtos.user.RegistrationDto;
 import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
+import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
 import com.example.nnprorocnikovyprojekt.repositories.ResetTokenRepository;
 import com.example.nnprorocnikovyprojekt.repositories.UserRepository;
+import com.example.nnprorocnikovyprojekt.repositories.VerificationCodeRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -16,6 +19,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -30,7 +38,13 @@ public class UserService implements UserDetailsService {
     private ResetTokenRepository resetTokenRepository;
 
     @Autowired
+    private VerificationCodeRepository verificationCodeRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
+
+    private SecureRandom secureRandom = new SecureRandom();
+    private Integer RANDOM_BOUND = 999999;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -60,6 +74,14 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public void deactivateUserVerificationTokens(User user){
+        user.getVerificationCodes().forEach(verificationCode -> {
+            verificationCode.setValid(false);
+            verificationCodeRepository.save(verificationCode);
+        });
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public boolean registerUser(RegistrationDto registrationRequest) {
         boolean alreadyExists = userRepository.getUserByUsername(registrationRequest.getUsername()).isPresent();
         if(alreadyExists) return false;
@@ -82,12 +104,52 @@ public class UserService implements UserDetailsService {
         return passwordEncoder.matches(password, user.getPassword());
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public VerificationCode generateVerificationCodeForUser(User user){
+        deactivateUserVerificationTokens(user);
+        String verificationCodeValue = Integer.toString(secureRandom.nextInt(RANDOM_BOUND));
+        StringUtils.leftPad(verificationCodeValue, 6, "0");
+        LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(5);
+        VerificationCode verificationCode = new VerificationCode(verificationCodeValue, expirationDate, user);
+        user.getVerificationCodes().add(verificationCode);
+        userRepository.save(user);
+        return verificationCode;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ResetToken generateResetTokenForUser(User user) {
+        UUID uuid = UUID.randomUUID();
+        String token = uuid.toString();
+        deactivateUserResetTokens(user);
+        ResetToken resetToken = new ResetToken(user, token);
+        user.getResetTokens().add(resetToken);
+        saveResetToken(resetToken);
+        return resetToken;
+    }
+
     public void saveResetToken(ResetToken resetToken){
         resetTokenRepository.save(resetToken);
     }
 
     public void saveUser(User user){
         userRepository.save(user);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public boolean verifyVerificationCode(String username, String verificationCodeValue) {
+        if(verificationCodeValue.length() < Integer.toString(RANDOM_BOUND).length()) return false;
+        User user = getUserByUsername(username);
+        if(user == null) return false;
+
+        List<VerificationCode> verificationCode = verificationCodeRepository.findValidVerificationCodes(user, verificationCodeValue);
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean nonExpiredValidCodeExists = verificationCode.stream().anyMatch(verificationCode1 -> verificationCode1.getExpirationDate().isBefore(now));
+        if(nonExpiredValidCodeExists) {
+            deactivateUserVerificationTokens(user);
+            return true;
+        }
+        return false;
     }
 
 
