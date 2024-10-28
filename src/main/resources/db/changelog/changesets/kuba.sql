@@ -35,3 +35,6 @@ ALTER TABLE user_contact ADD CONSTRAINT FKw0i4lv7jigx9xt7iq6gyxp4s FOREIGN KEY (
 CREATE TABLE verification_code (verification_code_id INT NOT NULL, expiration_date datetime(6) NULL, valid BIT NULL, verification_code VARCHAR(255) NULL, user_id INT NOT NULL, CONSTRAINT verification_codePK PRIMARY KEY (verification_code_id));
 
 ALTER TABLE verification_code ADD CONSTRAINT FKgy5dhio3a6c9me7s0x9v1y4d2 FOREIGN KEY (user_id) REFERENCES user (user_id);
+
+-- changeset Kuba:1730115537739-1
+ALTER TABLE conversation ADD conversation_name VARCHAR(255) NOT NULL;

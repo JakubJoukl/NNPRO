@@ -26,9 +26,6 @@ public class User implements UserDetails {
     @Column
     private String password;
 
-    @Column
-    private String salt;
-
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     private List<PublicKey> publicKey = new ArrayList<>();
 
@@ -44,13 +41,16 @@ public class User implements UserDetails {
     private List<User> contacts;
 
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ConversationUser> conversationUsers;
+    private List<ConversationUser> conversationUsers = new ArrayList<>();
+
+    protected User() {
+
+    }
 
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.salt = null; //TODO salt
     }
 
     public Integer getUserId() {
@@ -83,14 +83,6 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getSalt() {
-        return salt;
-    }
-
-    public void setSalt(String salt) {
-        this.salt = salt;
     }
 
     public List<PublicKey> getPublicKey() {

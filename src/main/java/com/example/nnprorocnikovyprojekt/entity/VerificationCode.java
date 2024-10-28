@@ -2,6 +2,7 @@ package com.example.nnprorocnikovyprojekt.entity;
 
 import com.example.nnprorocnikovyprojekt.entity.interfaces.WithExpiration;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
@@ -12,12 +13,15 @@ public class VerificationCode implements WithExpiration {
     private Integer verificationCodeId;
 
     @Column
+    @NotNull
     private String verificationCode;
 
     @Column
+    @NotNull
     private LocalDateTime expirationDate;
 
     @Column
+    @NotNull
     private boolean valid;
 
     @ManyToOne

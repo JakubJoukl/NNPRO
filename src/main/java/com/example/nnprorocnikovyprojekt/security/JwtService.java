@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
+//TODO overovat validitu tokenu?
 public class JwtService {
 
     @Value("${application.security.jwt.secret-key}")

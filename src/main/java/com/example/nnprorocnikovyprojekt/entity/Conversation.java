@@ -1,7 +1,9 @@
 package com.example.nnprorocnikovyprojekt.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -12,7 +14,11 @@ public class Conversation {
     private Integer conversationId;
 
     @OneToMany(mappedBy = "conversation",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ConversationUser> conversationUsers;
+    private List<ConversationUser> conversationUsers = new ArrayList<>();
+
+    @Column
+    @NotNull
+    private String conversationName;
 
     public Integer getConversationId() {
         return conversationId;
@@ -28,5 +34,13 @@ public class Conversation {
 
     public void setConversationUsers(List<ConversationUser> conversationUsers) {
         this.conversationUsers = conversationUsers;
+    }
+
+    public String getConversationName() {
+        return conversationName;
+    }
+
+    public void setConversationName(String conversationName) {
+        this.conversationName = conversationName;
     }
 }

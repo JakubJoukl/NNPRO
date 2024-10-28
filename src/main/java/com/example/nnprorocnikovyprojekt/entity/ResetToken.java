@@ -2,6 +2,7 @@ package com.example.nnprorocnikovyprojekt.entity;
 
 import com.example.nnprorocnikovyprojekt.entity.interfaces.WithExpiration;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
@@ -14,12 +15,15 @@ public class ResetToken implements WithExpiration {
     private Integer resetTokenId;
 
     @Column
+    @NotNull
     private String token;
 
     @Column
+    @NotNull
     private LocalDateTime expirationDate;
 
     @Column
+    @NotNull
     private boolean valid;
 
     @ManyToOne

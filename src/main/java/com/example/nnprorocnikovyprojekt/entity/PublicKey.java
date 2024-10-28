@@ -1,6 +1,7 @@
 package com.example.nnprorocnikovyprojekt.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
@@ -13,15 +14,19 @@ public class PublicKey {
     private Integer publicKeyId;
 
     @Column
+    @NotNull
     private String key;
 
     @Column
+    @NotNull
     private LocalDateTime creationDate;
 
     @Column
+    @NotNull
     private boolean valid;
 
     @Column
+    @NotNull
     private String fingerprint;
 
     @ManyToOne
