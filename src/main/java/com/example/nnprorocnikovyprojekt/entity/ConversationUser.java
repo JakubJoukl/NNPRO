@@ -1,6 +1,7 @@
 package com.example.nnprorocnikovyprojekt.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -20,6 +21,10 @@ public class ConversationUser {
     @MapsId("conversationId")
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
+
+    @Column
+    @NotNull
+    private boolean isActive;
 
     public ConversationUserId getConversationUserId() {
         return conversationUserId;
@@ -43,6 +48,14 @@ public class ConversationUser {
 
     public void setConversation(Conversation conversation) {
         this.conversation = conversation;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }
 

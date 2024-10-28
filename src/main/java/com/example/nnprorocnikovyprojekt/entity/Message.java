@@ -1,6 +1,9 @@
 package com.example.nnprorocnikovyprojekt.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "MESSAGE")
@@ -14,9 +17,27 @@ public class Message {
     @JoinColumn(name="sender_id", nullable=false)
     private User sender;
 
+    @Column(length = 4000)
+    private String content;
+
+    @Column
+    @NotNull
+    private LocalDateTime dateSend;
+
     @ManyToOne
-    @JoinColumn(name="receiver_id", nullable=false)
-    private User receiver;
+    @JoinColumn(name="conversation_id", nullable = false)
+    private Conversation conversation;
+
+    protected Message(){
+
+    }
+
+    public Message(User sender, Conversation conversation, String content) {
+        this.sender = sender;
+        this.conversation = conversation;
+        this.content = content;
+        this.dateSend = LocalDateTime.now();
+    }
 
     public Integer getMessageId() {
         return messageId;
@@ -34,11 +55,27 @@ public class Message {
         this.sender = sender;
     }
 
-    public User getReceiver() {
-        return receiver;
+    public Conversation getConversation() {
+        return conversation;
     }
 
-    public void setReceiver(User receiver) {
-        this.receiver = receiver;
+    public void setConversation(Conversation conversation) {
+        this.conversation = conversation;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String message) {
+        this.content = message;
+    }
+
+    public LocalDateTime getDateSend() {
+        return dateSend;
+    }
+
+    public void setDateSend(LocalDateTime dateSend) {
+        this.dateSend = dateSend;
     }
 }

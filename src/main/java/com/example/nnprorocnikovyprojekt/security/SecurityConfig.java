@@ -34,9 +34,7 @@ import static org.springframework.messaging.simp.SimpMessageType.SUBSCRIBE;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableWebSocketMessageBroker
-@EnableWebSocketSecurity
-public class SecurityConfig implements WebSocketMessageBrokerConfigurer {
+public class SecurityConfig {
 
     @Autowired
     private JwtAuthFilter authFilter;
@@ -85,31 +83,5 @@ public class SecurityConfig implements WebSocketMessageBrokerConfigurer {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
-    }
-
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/chat").withSockJS();
-    }
-
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic"); //muj broker
-        config.setApplicationDestinationPrefixes("/app"); //prefix aplikace - posilat na app/send/conversationId
-    }
-
-    //https://docs.spring.io/spring-security/reference/servlet/integrations/websocket.html
-    //TODO vlastní autorizace za použití jwt tokenu
-    @Bean
-    public AuthorizationManager<Message<?>> messageAuthorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
-        messages
-                .nullDestMatcher().authenticated()
-                .simpSubscribeDestMatchers("/user/queue/errors").permitAll()
-                .simpDestMatchers("/app/**").hasRole("USER")
-                .simpSubscribeDestMatchers("/chat/**").authenticated()
-                //.simpTypeMatchers(MESSAGE, SUBSCRIBE).denyAll() TODO chceme?
-                .anyMessage().denyAll();
-
-        return messages.build();
     }
 }
