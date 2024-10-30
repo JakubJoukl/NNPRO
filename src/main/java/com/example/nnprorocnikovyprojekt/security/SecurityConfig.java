@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,9 +25,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.util.Arrays;
 
 import static org.springframework.messaging.simp.SimpMessageType.MESSAGE;
 import static org.springframework.messaging.simp.SimpMessageType.SUBSCRIBE;
@@ -34,6 +43,7 @@ import static org.springframework.messaging.simp.SimpMessageType.SUBSCRIBE;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableWebMvc
 public class SecurityConfig {
 
     @Autowired
@@ -47,6 +57,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
                 /*.csrf(csrf -> csrf
                         // ignore our stomp endpoints since they are protected using Stomp headers
@@ -54,7 +65,7 @@ public class SecurityConfig {
                 )*/
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/chat/**").permitAll() //konfigurace security jinde
-                        .requestMatchers("/user/login", "/user/newPassword", "/user/register", "/user/resetPassword").permitAll()
+                        .requestMatchers("/login", "/newPassword", "/register", "/resetPassword").permitAll()
                         .requestMatchers("/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -83,5 +94,20 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+
+        source.registerCorsConfiguration("/**", config);
+
+        return new CorsFilter(source);
     }
 }
