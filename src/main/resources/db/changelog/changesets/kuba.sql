@@ -58,6 +58,14 @@ ALTER TABLE user DROP COLUMN salt;
 
 -- changeset Kuba:1730317689332-7
 
+ALTER TABLE conversation_user DROP FOREIGN KEY FKb71b5q60yd0bfc1eb8fgwm4sk;
+
+ALTER TABLE message DROP FOREIGN KEY FK6yskk3hxw5sklwgi25y6d5u1l;
+
 ALTER TABLE verification_code MODIFY verification_code_id int NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE conversation MODIFY conversation_id int NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE conversation_user ADD CONSTRAINT FKb71b5q60yd0bfc1eb8fgwm4sk FOREIGN KEY (conversation_id) REFERENCES conversation (conversation_id);
+
+ALTER TABLE message ADD CONSTRAINT FK6yskk3hxw5sklwgi25y6d5u1l FOREIGN KEY (conversation_id) REFERENCES conversation (conversation_id);
