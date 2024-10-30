@@ -60,7 +60,7 @@ public class EmailService {
             MimeMessage message = new MimeMessage(session);
             String recipient = user.getEmail();
             String subject = "Verification code for secure chat";
-            String emailHtmlContent = "<p>Your verification code is " + verificationCode + "<p>";
+            String emailHtmlContent = "<p>Your verification code is " + verificationCode.getVerificationCode() + "<p>";
 
             sendEmail(message, recipient, subject, emailHtmlContent);
         } catch (MessagingException mex) {

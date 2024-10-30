@@ -144,7 +144,7 @@ public class UserService implements UserDetailsService {
         List<VerificationCode> verificationCode = verificationCodeRepository.findValidVerificationCodes(user, verificationCodeValue);
         LocalDateTime now = LocalDateTime.now();
 
-        boolean nonExpiredValidCodeExists = verificationCode.stream().anyMatch(verificationCode1 -> verificationCode1.getExpirationDate().isBefore(now));
+        boolean nonExpiredValidCodeExists = verificationCode.stream().anyMatch(verificationCode1 -> verificationCode1.getExpirationDate().isAfter(now));
         if(nonExpiredValidCodeExists) {
             deactivateUserVerificationTokens(user);
             return true;
