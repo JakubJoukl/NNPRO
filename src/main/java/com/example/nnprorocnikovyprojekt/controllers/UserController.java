@@ -1,5 +1,6 @@
 package com.example.nnprorocnikovyprojekt.controllers;
 
+import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
@@ -40,7 +41,7 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody LoginDto authRequest) {
         boolean captchaIsValid = captchaService.validateCaptcha(authRequest.getCaptchaToken());
         if(!captchaIsValid) {
-            return ResponseEntity.status(403).body("Captcha is not valid");
+            return ResponseEntity.status(403).body(new GeneralResponseDto("Captcha is not valid"));
         }
 
         Authentication authentication = authenticationManager.authenticate(
@@ -55,11 +56,11 @@ public class UserController {
                 expirationDateDto.setExpirationDate(verificationCode.getExpirationDate());
                 return ResponseEntity.status(200).body(expirationDateDto);
             } else {
-                return ResponseEntity.status(500).body("Failed to send verification code");
+                return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to send verification code"));
             }
             //return ResponseEntity.status(200).body(jwtService.generateToken(authRequest.getUsername()));
         } else {
-            return ResponseEntity.status(403).body("Invalid username password combination");
+            return ResponseEntity.status(403).body(new GeneralResponseDto("Invalid username password combination"));
         }
     }
 
@@ -67,7 +68,7 @@ public class UserController {
     public ResponseEntity<?> verify2Fa(@RequestBody VerificationDto verificationDto) {
         boolean captchaIsValid = captchaService.validateCaptcha(verificationDto.getCaptchaToken());
         if(!captchaIsValid) {
-            return ResponseEntity.status(403).body("Captcha is not valid");
+            return ResponseEntity.status(403).body(new GeneralResponseDto("Captcha is not valid"));
         }
 
         boolean verificationCodeMatches = userService.verifyVerificationCode(verificationDto.getUsername(), verificationDto.getVerificationCode());
@@ -78,41 +79,41 @@ public class UserController {
             jwtTokenDto.setJwtToken(jwtToken);
             return ResponseEntity.status(200).body(jwtTokenDto);
         } else {
-            return ResponseEntity.status(403).body("Verification token is not valid");
+            return ResponseEntity.status(403).body(new GeneralResponseDto("Verification token is not valid"));
         }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegistrationDto registrationRequest){
+    public ResponseEntity<?> register(@RequestBody RegistrationDto registrationRequest){
         boolean captchaIsValid = captchaService.validateCaptcha(registrationRequest.getCaptchaToken());
         if(!captchaIsValid) {
-            return ResponseEntity.status(403).body("Captcha is not valid");
+            return ResponseEntity.status(403).body(new GeneralResponseDto("Captcha is not valid"));
         }
 
         boolean userCreated = userService.registerUser(registrationRequest);
-        if(!userCreated) return ResponseEntity.status(500).body("Failed to create user");
-        else return ResponseEntity.status(201).body("User created");
+        if(!userCreated) return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to create user"));
+        else return ResponseEntity.status(201).body(new GeneralResponseDto("User created"));
     }
 
     //TODO bude potreba
     @PostMapping("/resetPassword")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDto authRequest) {
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto authRequest) {
         User user = userService.getUserByUsername(authRequest.getUsername());
-        if(user == null) return ResponseEntity.status(404).body("User not found");
+        if(user == null) return ResponseEntity.status(404).body(new GeneralResponseDto("User not found"));
         boolean emailSent = emailService.sendResetTokenEmail(user);
         if(emailSent) {
-            return ResponseEntity.status(200).body("Reset email send");
+            return ResponseEntity.status(200).body(new GeneralResponseDto("Reset email send"));
         } else {
-            return ResponseEntity.status(500).body("Failed to send email");
+            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to send email"));
         }
     }
 
     //TODO bude potreba?
     @PostMapping("/newPassword")
-    public ResponseEntity<String> newPassword(@RequestBody NewPasswordDto resetPasswordRequest){
+    public ResponseEntity<?> newPassword(@RequestBody NewPasswordDto resetPasswordRequest){
         ResetToken resetToken = userService.getResetTokenByValue(resetPasswordRequest.getToken());
 
-        if(resetToken == null) return ResponseEntity.status(400).body("Reset token not found");
+        if(resetToken == null) return ResponseEntity.status(400).body(new GeneralResponseDto("Reset token not found"));
 
         boolean resetTokenIsValid = resetToken.isValid() && LocalDateTime.now().isBefore(resetToken.getExpirationDate());
         if(resetTokenIsValid){
@@ -123,18 +124,21 @@ public class UserController {
         resetToken.setValid(false);
         userService.saveResetToken(resetToken);
 
-        if(resetTokenIsValid) return ResponseEntity.status(200).body("Password reset");
-        else return ResponseEntity.status(400).body("Reset token was already used or expired");
+        if(resetTokenIsValid) return ResponseEntity.status(200).body(new GeneralResponseDto("Password reset"));
+        else return ResponseEntity.status(400).body(new GeneralResponseDto("Reset token was already used or expired"));
     }
 
     //TODO bude potreba?
     @PutMapping("/changePassword")
-    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordDto changePasswordDto){
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto changePasswordDto){
         User user = userService.getUserFromContext();
 
-        if(user == null) return ResponseEntity.status(404).body("User not found");
+        if(user == null)
+            return ResponseEntity.status(404).body(new GeneralResponseDto("User not found"));
+
         String oldPassword = changePasswordDto.getOldPassword();
-        if(!userService.userPasswordMatches(oldPassword, user)) return ResponseEntity.status(400).body("Old password was wrong");
+        if(!userService.userPasswordMatches(oldPassword, user))
+            return ResponseEntity.status(400).body(new GeneralResponseDto("Old password was wrong"));
 
         String newPassword = changePasswordDto.getNewPassword();
         userService.changePassword(newPassword, user);
