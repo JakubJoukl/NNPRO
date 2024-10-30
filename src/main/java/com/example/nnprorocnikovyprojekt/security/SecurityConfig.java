@@ -65,7 +65,7 @@ public class SecurityConfig {
                 )*/
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/chat/**").permitAll() //konfigurace security jinde
-                        .requestMatchers("/login", "/newPassword", "/register", "/resetPassword").permitAll()
+                        .requestMatchers("/login", "/newPassword", "/register", "/resetPassword", "/verify2fa").permitAll()
                         .requestMatchers("/**").authenticated()
                         .anyRequest().authenticated()
                 )

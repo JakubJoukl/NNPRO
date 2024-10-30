@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 public class Conversation {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer conversationId;
 
     @OneToMany(mappedBy = "conversation",cascade = CascadeType.ALL, fetch = FetchType.LAZY)

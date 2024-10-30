@@ -38,3 +38,26 @@ ALTER TABLE verification_code ADD CONSTRAINT FKgy5dhio3a6c9me7s0x9v1y4d2 FOREIGN
 
 -- changeset Kuba:1730115537739-1
 ALTER TABLE conversation ADD conversation_name VARCHAR(255) NOT NULL;
+
+-- changeset Kuba:1730317689332-6
+ALTER TABLE message DROP FOREIGN KEY FK86f0kc2mt26ifwupnivu6v8oa;
+
+ALTER TABLE message ADD content VARCHAR(4000) NULL;
+
+ALTER TABLE message ADD conversation_id INT NOT NULL;
+
+ALTER TABLE message ADD date_send datetime(6) NOT NULL;
+
+ALTER TABLE conversation_user ADD is_active BIT NOT NULL;
+
+ALTER TABLE message ADD CONSTRAINT FK6yskk3hxw5sklwgi25y6d5u1l FOREIGN KEY (conversation_id) REFERENCES conversation (conversation_id);
+
+ALTER TABLE message DROP COLUMN receiver_id;
+
+ALTER TABLE user DROP COLUMN salt;
+
+-- changeset Kuba:1730317689332-7
+
+ALTER TABLE verification_code MODIFY verification_code_id int NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE conversation MODIFY conversation_id int NOT NULL AUTO_INCREMENT;

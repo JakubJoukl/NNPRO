@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "VERIFICATION_CODE")
 public class VerificationCode implements WithExpiration {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer verificationCodeId;
 
     @Column
