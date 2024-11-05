@@ -60,7 +60,7 @@ public class ConversationService {
 
     public ConversationPageResponseDto getConversationsByPage(PageInfoRequestWrapper conversationPageinfoRequestDto) {
         User user = userService.getUserFromContext();
-        Pageable pageInfo = PageRequest.of(conversationPageinfoRequestDto.getPageIndex(), conversationPageinfoRequestDto.getPageSize()).withSort(Sort.Direction.DESC);
+        Pageable pageInfo = PageRequest.of(conversationPageinfoRequestDto.getPageIndex(), conversationPageinfoRequestDto.getPageSize()).withSort(Sort.Direction.DESC, "conversationId");
         return conversationsToConversationNameDtos(conversationRepository.getConversationsByUsername(user, pageInfo));
     }
 

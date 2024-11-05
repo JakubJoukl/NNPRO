@@ -18,4 +18,12 @@ public class PageInfoRequestWrapper {
     public void setPageIndex(Integer pageIndex) {
         this.pageInfo.setPageIndex(pageIndex);
     }
+
+    public PageInfoDtoRequest getPageInfo() {
+        return pageInfo;
+    }
+
+    public void setPageInfo(PageInfoDtoRequest pageInfo) {
+        this.pageInfo = pageInfo;
+    }
 }
