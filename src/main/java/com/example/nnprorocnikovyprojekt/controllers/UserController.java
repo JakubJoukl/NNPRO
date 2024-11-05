@@ -1,6 +1,7 @@
 package com.example.nnprorocnikovyprojekt.controllers;
 
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
@@ -128,31 +129,33 @@ public class UserController {
         else return ResponseEntity.status(400).body(new GeneralResponseDto("Reset token was already used or expired"));
     }
 
-    //TODO bude potreba?
-    @PutMapping("/changePassword")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto changePasswordDto){
-        User user = userService.getUserFromContext();
-
-        if(user == null)
-            return ResponseEntity.status(404).body(new GeneralResponseDto("User not found"));
-
-        String oldPassword = changePasswordDto.getOldPassword();
-        if(!userService.userPasswordMatches(oldPassword, user))
-            return ResponseEntity.status(400).body(new GeneralResponseDto("Old password was wrong"));
-
-        String newPassword = changePasswordDto.getNewPassword();
-        userService.changePassword(newPassword, user);
-
-        return ResponseEntity.status(200).body("Password changed");
-    }
-
-    @PostMapping("/updateUser")
+    @PutMapping("/updateUser")
     public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto){
         try {
             userService.updateUser(updateUserDto);
             return ResponseEntity.status(200).body(new GeneralResponseDto("User updated"));
         } catch (Exception e) {
             return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to update user"));
+        }
+    }
+
+    @PostMapping("/addContact")
+    public ResponseEntity<?> addContact(@RequestBody AddContactDto addContactDto) {
+        try {
+            userService.addContact(addContactDto);
+            return ResponseEntity.status(200).body(new GeneralResponseDto("Contact added"));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to add contact"));
+        }
+    }
+
+    @PostMapping("/listContacts")
+    public ResponseEntity<?> listContacts(@RequestBody PageInfoRequestWrapper pageInfoRequestWrapper) {
+        try {
+            ContactsPageResponseDto contactsPageResponseDto = userService.listContacts(pageInfoRequestWrapper);
+            return ResponseEntity.status(200).body(contactsPageResponseDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to add contact"));
         }
     }
 }

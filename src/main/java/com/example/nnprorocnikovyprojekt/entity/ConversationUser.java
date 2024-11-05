@@ -12,12 +12,12 @@ public class ConversationUser {
     @EmbeddedId
     private ConversationUserId conversationUserId;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @MapsId("conversationId")
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
@@ -25,6 +25,15 @@ public class ConversationUser {
     @Column
     @NotNull
     private boolean isActive;
+
+    public ConversationUser() {
+    }
+
+    public ConversationUser(User user, Conversation conversation) {
+        this.user = user;
+        this.conversation = conversation;
+        this.isActive = true;
+    }
 
     public ConversationUserId getConversationUserId() {
         return conversationUserId;

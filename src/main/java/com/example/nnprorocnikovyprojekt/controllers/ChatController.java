@@ -1,5 +1,6 @@
 package com.example.nnprorocnikovyprojekt.controllers;
 
+import com.example.nnprorocnikovyprojekt.dtos.conversation.AddUserToConversationDto;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.MessageDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
@@ -49,6 +50,16 @@ public class ChatController {
         try {
             ConversationPageResponseDto userConversations = conversationService.getConversationsByPage(pageInfoRequestWrapper);
             return ResponseEntity.status(200).body(userConversations);
+        } catch (Exception e){
+            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));
+        }
+    }
+
+    @PostMapping("/addUserToConversation")
+    public ResponseEntity<?> addUserToConversation(@RequestBody AddUserToConversationDto addUserToConversationDto){
+        try {
+            conversationService.addUserToConversation(addUserToConversationDto);
+            return ResponseEntity.status(200).body(new GeneralResponseDto("User added to conversation"));
         } catch (Exception e){
             return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));
         }

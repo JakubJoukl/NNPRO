@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public interface ConversationRepository extends JpaRepository<Conversation, Integer> {
 
-    public Optional<Conversation> getConversationByConversationId(Integer conversationId);
+    Optional<Conversation> getConversationByConversationId(Integer conversationId);
 
     @Query("SELECT c FROM Conversation c JOIN ConversationUser cu ON cu.conversation = c WHERE cu.user = :user")
     Page<Conversation> getConversationsByUsername(@Param("user") User user, Pageable pageable);

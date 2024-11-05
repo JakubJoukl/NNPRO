@@ -1,8 +1,10 @@
 package com.example.nnprorocnikovyprojekt.services;
 
 
-import com.example.nnprorocnikovyprojekt.dtos.user.RegistrationDto;
-import com.example.nnprorocnikovyprojekt.dtos.user.UpdateUserDto;
+import com.example.nnprorocnikovyprojekt.Utility.Utils;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
+import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
@@ -25,6 +27,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -165,6 +168,36 @@ public class UserService implements UserDetailsService {
             if(updateUserDto.getPublicKey() != null) user.setPublicKey(null);
             saveUser(user);
         }
+    }
+
+    public void addContact(AddContactDto addContactDto) {
+        User user = getUserFromContext();
+        User contact = getUserByUsername(addContactDto.getUsername());
+
+        if(contact == null) throw new RuntimeException("Contact is null");
+
+        user.getContacts().add(contact);
+        saveUser(user);
+    }
+
+    public ContactsPageResponseDto listContacts(PageInfoRequestWrapper pageInfoRequestWrapper) {
+        User user = getUserFromContext();
+        List<User> contacts = Utils.getPage(user.getContacts(), pageInfoRequestWrapper.getPageIndex(), pageInfoRequestWrapper.getPageSize());
+        return contactsToContactsPageResponseDtos(contacts, pageInfoRequestWrapper, contacts.size());
+    }
+
+    private ContactsPageResponseDto contactsToContactsPageResponseDtos(List<User> contacts, PageInfoRequestWrapper pageInfoRequestWrapper, Integer total){
+        List<UserDto> userDtos = contacts.stream()
+                .map(user -> {
+                    String publicKey = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKey() : null;
+                    return new UserDto(user.getUsername(), user.getEmail(), publicKey);
+                })
+                .collect(Collectors.toList());
+
+        ContactsPageResponseDto contactsPageResponseDto = new ContactsPageResponseDto();
+        contactsPageResponseDto.setItemList(userDtos);
+        contactsPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(pageInfoRequestWrapper.getPageSize(), pageInfoRequestWrapper.getPageIndex(), (long)total));
+        return contactsPageResponseDto;
     }
 
 

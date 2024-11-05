@@ -5,7 +5,7 @@ public class PageInfoDtoResponse {
 
     private Integer pageIndex;
 
-    private Integer total;
+    private Long total;
 
     public PageInfoDtoResponse() {
     }
@@ -16,7 +16,7 @@ public class PageInfoDtoResponse {
         this.total = null;
     }
 
-    public PageInfoDtoResponse(Integer pageSize, Integer pageIndex, Integer total) {
+    public PageInfoDtoResponse(Integer pageSize, Integer pageIndex, Long total) {
         this.pageSize = pageSize;
         this.pageIndex = pageIndex;
         this.total = total;
@@ -38,11 +38,11 @@ public class PageInfoDtoResponse {
         this.pageIndex = pageIndex;
     }
 
-    public Integer getTotal() {
+    public Long getTotal() {
         return total;
     }
 
-    public void setTotal(Integer total) {
+    public void setTotal(Long total) {
         this.total = total;
     }
 }

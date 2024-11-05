@@ -1,8 +1,8 @@
 package com.example.nnprorocnikovyprojekt.services;
 
+import com.example.nnprorocnikovyprojekt.dtos.conversation.AddUserToConversationDto;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationNameDto;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageResponseDto;
-import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.entity.Conversation;
@@ -10,6 +10,7 @@ import com.example.nnprorocnikovyprojekt.entity.ConversationUser;
 import com.example.nnprorocnikovyprojekt.entity.Message;
 import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.repositories.ConversationRepository;
+import com.example.nnprorocnikovyprojekt.repositories.ConversationUserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -39,6 +40,9 @@ public class ConversationService {
     private UserService userService;
 
     @Autowired
+    private ConversationUserRepository conversationUserRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     public Conversation getConversationById(Integer conversationId){
@@ -48,7 +52,6 @@ public class ConversationService {
     //Neukladame zpravy, ktere nejsme schopni odeslat?
     @Transactional(rollbackFor = Exception.class)
     public void sendMessageToAllSubscribersExceptUser(User user, Conversation conversation, String content) {
-        //TODO zde pracovat s klici;
         Message message = new Message(user, conversation, content);
         messageService.saveMessage(message);
         List<ConversationUser> subscriptions = conversation.getActiveConversationUsers()
@@ -56,6 +59,24 @@ public class ConversationService {
                 .filter(conversationUser -> !conversationUser.getUser().getUsername().equals(user.getUsername()))
                 .toList();
         subscriptions.forEach(subscription -> simpMessagingTemplate.convertAndSendToUser(subscription.getUser().getUsername(), "/topic/" + conversation.getConversationId(), content));
+    }
+
+    public void addUserToConversation(AddUserToConversationDto addUserToConversationDto){
+        User user = userService.getUserByUsername(addUserToConversationDto.getUsername());
+
+        if(user == null) throw new RuntimeException("User is null");
+
+        Conversation conversation = getConversationById(addUserToConversationDto.getConversationId());
+
+        if(conversation == null) throw new RuntimeException("Conversation is null");
+
+        ConversationUser conversationUser = new ConversationUser(user, conversation);
+        saveConversationUser(conversationUser);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ConversationUser saveConversationUser(ConversationUser conversationUser){
+        return conversationUserRepository.save(conversationUser);
     }
 
     public ConversationPageResponseDto getConversationsByPage(PageInfoRequestWrapper conversationPageinfoRequestDto) {
@@ -66,20 +87,20 @@ public class ConversationService {
 
     private ConversationPageResponseDto conversationsToConversationNameDtos(Page<Conversation> page){
         if(page == null) return null;
-        List<ConversationNameDto> conversationNameDtos = page.getContent().stream()
+        List<ConversationNameDto> conversationDtos = page.getContent().stream()
                 .map(conversation -> new ConversationNameDto(conversation.getConversationId(), conversation.getConversationName()))
                 .collect(Collectors.toList());
 
         ConversationPageResponseDto conversationPageResponseDto = new ConversationPageResponseDto();
-        conversationPageResponseDto.setItemList(conversationNameDtos);
-        conversationPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(page.getSize(), page.getNumber(), page.getTotalPages()));
+        conversationPageResponseDto.setItemList(conversationDtos);
+        conversationPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(page.getSize(), page.getNumber(), page.getTotalElements()));
         return conversationPageResponseDto;
     }
 
     private List<Conversation> conversationNameDtosToConversations(List<ConversationNameDto> conversations){
         if(conversations == null) return null;
         return conversations.stream()
-                .map(conversationNameDto -> getConversationById(conversationNameDto.getId()))
+                .map(user -> getConversationById(user.getId()))
                 .collect(Collectors.toList());
     }
 }

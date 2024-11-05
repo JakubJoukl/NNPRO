@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "USER")
@@ -26,19 +27,20 @@ public class User implements UserDetails {
     @Column
     private String password;
 
+    //TODO prejmenovat
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     private List<PublicKey> publicKey = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<ResetToken> resetTokens;
+    private List<ResetToken> resetTokens = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<VerificationCode> verificationCodes;
+    private List<VerificationCode> verificationCodes = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(name = "USER_CONTACT", joinColumns =
     @JoinColumn(name = "USER_ID"), inverseJoinColumns = @JoinColumn(name = "CONTACT_USER_ID"))
-    private List<User> contacts;
+    private List<User> contacts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ConversationUser> conversationUsers = new ArrayList<>();
@@ -87,6 +89,10 @@ public class User implements UserDetails {
 
     public List<PublicKey> getPublicKey() {
         return publicKey;
+    }
+
+    public Optional<PublicKey> getActivePublicKey() {
+        return publicKey.stream().filter(PublicKey::isValid).findFirst();
     }
 
     public void setPublicKey(List<PublicKey> publicKey) {
