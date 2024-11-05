@@ -2,6 +2,7 @@ package com.example.nnprorocnikovyprojekt.services;
 
 
 import com.example.nnprorocnikovyprojekt.dtos.user.RegistrationDto;
+import com.example.nnprorocnikovyprojekt.dtos.user.UpdateUserDto;
 import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
@@ -150,6 +151,20 @@ public class UserService implements UserDetailsService {
             return true;
         }
         return false;
+    }
+
+    public void updateUser(UpdateUserDto updateUserDto) {
+        User user = getUserFromContext();
+        if(!userPasswordMatches(updateUserDto.getConfirmationPassword(), user)) {
+            throw new RuntimeException("Password does not match");
+        }
+        if(updateUserDto.getEmail() != null || updateUserDto.getPassword() != null || updateUserDto.getPublicKey() != null){
+            if(updateUserDto.getEmail() != null) user.setEmail(updateUserDto.getEmail());
+            if(updateUserDto.getPassword() != null) user.setPassword(updateUserDto.getPassword());
+            //TODO public key
+            if(updateUserDto.getPublicKey() != null) user.setPublicKey(null);
+            saveUser(user);
+        }
     }
 
 

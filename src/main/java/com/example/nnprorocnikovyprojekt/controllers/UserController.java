@@ -145,4 +145,14 @@ public class UserController {
 
         return ResponseEntity.status(200).body("Password changed");
     }
+
+    @PostMapping("/updateUser")
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto){
+        try {
+            userService.updateUser(updateUserDto);
+            return ResponseEntity.status(200).body(new GeneralResponseDto("User updated"));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to update user"));
+        }
+    }
 }
