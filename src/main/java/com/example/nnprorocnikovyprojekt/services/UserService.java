@@ -160,7 +160,7 @@ public class UserService implements UserDetailsService {
         }
         if(updateUserDto.getEmail() != null || updateUserDto.getPassword() != null || updateUserDto.getPublicKey() != null){
             if(updateUserDto.getEmail() != null) user.setEmail(updateUserDto.getEmail());
-            if(updateUserDto.getPassword() != null) user.setPassword(updateUserDto.getPassword());
+            if(updateUserDto.getPassword() != null) user.setPassword(encryptPassword(updateUserDto.getPassword()));
             //TODO public key
             if(updateUserDto.getPublicKey() != null) user.setPublicKey(null);
             saveUser(user);
