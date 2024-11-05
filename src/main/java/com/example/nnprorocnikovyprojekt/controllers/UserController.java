@@ -100,12 +100,12 @@ public class UserController {
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto authRequest) {
         User user = userService.getUserByUsername(authRequest.getUsername());
         if(user == null) return ResponseEntity.status(404).body(new GeneralResponseDto("User not found"));
-        boolean emailSent = emailService.sendResetTokenEmail(user);
-        if(emailSent) {
-            return ResponseEntity.status(200).body(new GeneralResponseDto("Reset email send"));
-        } else {
-            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to send email"));
-        }
+        emailService.sendResetTokenEmail(user);
+        //if(emailSent) {
+        return ResponseEntity.status(200).body(new GeneralResponseDto("Reset email send"));
+        //} else {
+        //    return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to send email"));
+        //}
     }
 
     //TODO bude potreba?

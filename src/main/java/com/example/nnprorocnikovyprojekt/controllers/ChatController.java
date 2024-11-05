@@ -1,5 +1,8 @@
 package com.example.nnprorocnikovyprojekt.controllers;
 
+import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationNameDto;
+import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageInfoResponseDto;
+import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageinfoRequestDto;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.MessageDto;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.entity.Conversation;
@@ -11,8 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 
-@Controller
+import java.util.List;
+
+@Controller("chat")
 public class ChatController {
 
     @Autowired
@@ -23,7 +29,7 @@ public class ChatController {
 
     //https://medium.com/@poojithairosha/spring-boot-3-authenticate-websocket-connections-with-jwt-tokens-2b4ff60532b6
     //Asi chci destination variable a nepotrebuji hodnotu z Dto?
-    @MessageMapping("/chat/{conversationId}")
+    @MessageMapping("/{conversationId}")
     public ResponseEntity<?> chat(MessageDto messageDto, @DestinationVariable Integer conversationId) {
         User user = userService.getUserFromContext();
 
@@ -34,9 +40,19 @@ public class ChatController {
             Conversation conversation = conversationService.getConversationById(conversationId);
             conversationService.sendMessageToAllSubscribersExceptUser(user, conversation, messageDto.getMessage());
         } catch (Exception e){
-            return ResponseEntity.status(500).body("Failed to process message");
+            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to process message"));
         }
-        return ResponseEntity.status(200).body("Message processed, receivers notified");
+        return ResponseEntity.status(200).body(new GeneralResponseDto("Message processed, receivers notified"));
+    }
+
+    @PostMapping("/listUserConversation")
+    public ResponseEntity<?> listUserConversation(ConversationPageinfoRequestDto conversationPageinfoRequestDto){
+        try {
+            ConversationPageInfoResponseDto userConversations = conversationService.getConversationsByPage(conversationPageinfoRequestDto);
+            return ResponseEntity.status(200).body(userConversations);
+        } catch (Exception e){
+            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));
+        }
     }
 
     /*@MessageMapping("/send/{conversationId}")

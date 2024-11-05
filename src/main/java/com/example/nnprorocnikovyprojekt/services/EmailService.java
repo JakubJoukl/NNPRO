@@ -5,6 +5,7 @@ import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
 import com.sun.mail.util.MailSSLSocketFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,8 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.security.GeneralSecurityException;
-import java.security.SecureRandom;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
-import java.util.UUID;
 
 @Service
 public class EmailService {
@@ -69,7 +68,8 @@ public class EmailService {
         return verificationCode;
     }
 
-    private void sendEmail(MimeMessage message, String recipient, String subject, String emailHtmlContent) throws MessagingException {
+    @Async
+    public void sendEmail(MimeMessage message, String recipient, String subject, String emailHtmlContent) throws MessagingException {
         message.setFrom(new InternetAddress("semestralkaa@gmail.com"));
         message.setRecipients(MimeMessage.RecipientType.TO, recipient);
         message.setSubject(subject);
@@ -93,8 +93,9 @@ public class EmailService {
         return session;
     }
 
+    @Async
     @Transactional(rollbackFor = Exception.class)
-    public boolean sendResetTokenEmail(User user)  {
+    public void sendResetTokenEmail(User user)  {
         if(user == null) throw new RuntimeException("User is null");
 
         Session session = initiateSession();
@@ -110,9 +111,7 @@ public class EmailService {
 
             sendEmail(message, user.getEmail(), subject, emailHtmlContent);
         } catch (MessagingException mex) {
-            return false;
+            //TODO logging
         }
-
-        return true;
     }
 }
