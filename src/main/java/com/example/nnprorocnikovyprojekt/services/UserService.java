@@ -108,7 +108,7 @@ public class UserService implements UserDetailsService {
     public VerificationCode generateVerificationCodeForUser(User user){
         deactivateUserVerificationTokens(user);
         String verificationCodeValue = Integer.toString(secureRandom.nextInt(RANDOM_BOUND));
-        StringUtils.leftPad(verificationCodeValue, 6, "0");
+        verificationCodeValue = StringUtils.leftPad(verificationCodeValue, 6, "0");
         LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(5);
         VerificationCode verificationCode = new VerificationCode(verificationCodeValue, expirationDate, user);
         user.getVerificationCodes().add(verificationCode);
