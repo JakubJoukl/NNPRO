@@ -1,10 +1,10 @@
 package com.example.nnprorocnikovyprojekt.controllers;
 
-import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationNameDto;
-import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageInfoResponseDto;
-import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageinfoRequestDto;
+import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.MessageDto;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.entity.Conversation;
 import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.services.ConversationService;
@@ -15,8 +15,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Controller("chat")
 public class ChatController {
@@ -45,10 +44,10 @@ public class ChatController {
         return ResponseEntity.status(200).body(new GeneralResponseDto("Message processed, receivers notified"));
     }
 
-    @PostMapping("/listUserConversation")
-    public ResponseEntity<?> listUserConversation(ConversationPageinfoRequestDto conversationPageinfoRequestDto){
+    @PostMapping(path = "/listUserConversation")
+    public ResponseEntity<?> listUserConversation(@RequestBody PageInfoRequestWrapper pageInfoRequestWrapper){
         try {
-            ConversationPageInfoResponseDto userConversations = conversationService.getConversationsByPage(conversationPageinfoRequestDto);
+            ConversationPageResponseDto userConversations = conversationService.getConversationsByPage(pageInfoRequestWrapper);
             return ResponseEntity.status(200).body(userConversations);
         } catch (Exception e){
             return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));

@@ -1,16 +1,22 @@
-package com.example.nnprorocnikovyprojekt.dtos.conversation;
+package com.example.nnprorocnikovyprojekt.dtos.pageinfo;
 
-public class PageInfoDto {
+public class PageInfoDtoResponse {
     private Integer pageSize;
 
     private Integer pageIndex;
 
     private Integer total;
 
-    public PageInfoDto() {
+    public PageInfoDtoResponse() {
     }
 
-    public PageInfoDto(Integer pageSize, Integer pageIndex, Integer total) {
+    public PageInfoDtoResponse(Integer pageSize, Integer pageIndex) {
+        this.pageSize = pageSize;
+        this.pageIndex = pageIndex;
+        this.total = null;
+    }
+
+    public PageInfoDtoResponse(Integer pageSize, Integer pageIndex, Integer total) {
         this.pageSize = pageSize;
         this.pageIndex = pageIndex;
         this.total = total;
