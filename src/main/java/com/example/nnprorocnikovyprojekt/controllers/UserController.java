@@ -152,8 +152,8 @@ public class UserController {
     @PostMapping("/listContacts")
     public ResponseEntity<?> listContacts(@RequestBody PageInfoRequestWrapper pageInfoRequestWrapper) {
         try {
-            ContactsPageResponseDto contactsPageResponseDto = userService.listContacts(pageInfoRequestWrapper);
-            return ResponseEntity.status(200).body(contactsPageResponseDto);
+            UserPageResponseDto userPageResponseDto = userService.listContacts(pageInfoRequestWrapper);
+            return ResponseEntity.status(200).body(userPageResponseDto);
         } catch (Exception e) {
             return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to add contact"));
         }
@@ -166,6 +166,16 @@ public class UserController {
             return ResponseEntity.status(200).body(responseUserDto);
         } catch (Exception e) {
             return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to retrieve user details"));
+        }
+    }
+
+    @PostMapping("/searchUsers")
+    public ResponseEntity<?> searchUsers(@RequestBody SearchUserDtoRequest searchUserDtoRequest){
+        try {
+            UserPageResponseDto responseUserDto = userService.searchUsers(searchUserDtoRequest);
+            return ResponseEntity.status(200).body(responseUserDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to retrieve users"));
         }
     }
 }

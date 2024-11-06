@@ -4,7 +4,7 @@ import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 
 import java.util.List;
 
-public class ContactsPageResponseDto {
+public class UserPageResponseDto {
     private List<UserDto> itemList;
 
     private PageInfoDtoResponse pageInfo;

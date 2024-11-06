@@ -5,7 +5,7 @@ public class UserDto {
 
     private String email;
 
-    private PublicKeyDto publicKeyDto;
+    private PublicKeyDto publicKey;
 
     public UserDto() {
     }
@@ -13,7 +13,7 @@ public class UserDto {
     public UserDto(String username, String email, PublicKeyDto publicKey) {
         this.username = username;
         this.email = email;
-        this.publicKeyDto = publicKey;
+        this.publicKey = publicKey;
     }
 
     public String getUsername() {
@@ -32,11 +32,11 @@ public class UserDto {
         this.email = email;
     }
 
-    public PublicKeyDto getPublicKeyDto() {
-        return publicKeyDto;
+    public PublicKeyDto getPublicKey() {
+        return publicKey;
     }
 
-    public void setPublicKeyDto(PublicKeyDto publicKeyDto) {
-        this.publicKeyDto = publicKeyDto;
+    public void setPublicKey(PublicKeyDto publicKey) {
+        this.publicKey = publicKey;
     }
 }

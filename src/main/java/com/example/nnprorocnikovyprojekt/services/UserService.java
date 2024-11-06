@@ -2,13 +2,12 @@ package com.example.nnprorocnikovyprojekt.services;
 
 
 import com.example.nnprorocnikovyprojekt.Utility.Utils;
+import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationNameDto;
+import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
-import com.example.nnprorocnikovyprojekt.entity.PublicKey;
-import com.example.nnprorocnikovyprojekt.entity.ResetToken;
-import com.example.nnprorocnikovyprojekt.entity.User;
-import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
+import com.example.nnprorocnikovyprojekt.entity.*;
 import com.example.nnprorocnikovyprojekt.repositories.ResetTokenRepository;
 import com.example.nnprorocnikovyprojekt.repositories.UserRepository;
 import com.example.nnprorocnikovyprojekt.repositories.VerificationCodeRepository;
@@ -17,6 +16,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -92,7 +95,6 @@ public class UserService implements UserDetailsService {
     public boolean registerUser(RegistrationDto registrationRequest) {
         boolean alreadyExists = userRepository.getUserByUsername(registrationRequest.getUsername()).isPresent();
         if(alreadyExists) return false;
-        //TODO zde dat i salt
         else return userRepository.save(new User(registrationRequest.getUsername(), encryptPassword(registrationRequest.getPassword()), registrationRequest.getEmail()))
                 .getUserId() != null;
     }
@@ -186,21 +188,21 @@ public class UserService implements UserDetailsService {
         saveUser(user);
     }
 
-    public ContactsPageResponseDto listContacts(PageInfoRequestWrapper pageInfoRequestWrapper) {
+    public UserPageResponseDto listContacts(PageInfoRequestWrapper pageInfoRequestWrapper) {
         User user = getUserFromContext();
         List<User> contacts = Utils.getPage(user.getContacts(), pageInfoRequestWrapper.getPageIndex(), pageInfoRequestWrapper.getPageSize());
-        return contactsToContactsPageResponseDtos(contacts, pageInfoRequestWrapper, contacts.size());
+        return contactsToContactsPageResponseDtos(contacts, pageInfoRequestWrapper, user.getContacts().size());
     }
 
-    private ContactsPageResponseDto contactsToContactsPageResponseDtos(List<User> contacts, PageInfoRequestWrapper pageInfoRequestWrapper, Integer total){
+    private UserPageResponseDto contactsToContactsPageResponseDtos(List<User> contacts, PageInfoRequestWrapper pageInfoRequestWrapper, Integer total){
         List<UserDto> userDtos = contacts.stream()
                 .map(this::userToUserDto)
                 .collect(Collectors.toList());
 
-        ContactsPageResponseDto contactsPageResponseDto = new ContactsPageResponseDto();
-        contactsPageResponseDto.setItemList(userDtos);
-        contactsPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(pageInfoRequestWrapper.getPageSize(), pageInfoRequestWrapper.getPageIndex(), (long)total));
-        return contactsPageResponseDto;
+        UserPageResponseDto userPageResponseDto = new UserPageResponseDto();
+        userPageResponseDto.setItemList(userDtos);
+        userPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(pageInfoRequestWrapper.getPageSize(), pageInfoRequestWrapper.getPageIndex(), (long)total));
+        return userPageResponseDto;
     }
 
     private UserDto userToUserDto(User user) {
@@ -221,6 +223,24 @@ public class UserService implements UserDetailsService {
     public UserDto getUserData() {
         User user = getUserFromContext();
         return userToUserDto(user);
+    }
+
+    public UserPageResponseDto searchUsers(SearchUserDtoRequest searchUserDtoRequest) {
+        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "conversationId");
+        Page<User> usersPage = userRepository.findUsersByUsernameLike(searchUserDtoRequest.getSearchTerm(), pageInfo);
+        return usersToUserPageResponseDto(usersPage);
+    }
+
+    private UserPageResponseDto usersToUserPageResponseDto(Page<User> page){
+        if(page == null) return null;
+        List<UserDto> userDtos = page.getContent().stream()
+                .map(this::userToUserDto)
+                .collect(Collectors.toList());
+
+        UserPageResponseDto userPageResponseDto = new UserPageResponseDto();
+        userPageResponseDto.setItemList(userDtos);
+        userPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(page.getSize(), page.getSize(), page.getTotalElements()));
+        return userPageResponseDto;
     }
 
     //TODO zkopirovane -> bude vubec potreba?
