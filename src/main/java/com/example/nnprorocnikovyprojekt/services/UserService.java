@@ -204,9 +204,14 @@ public class UserService implements UserDetailsService {
     }
 
     private UserDto userToUserDto(User user) {
-        String publicKeyString = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKey() : "";
+        String publicKeyString = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKey() : null;
         try {
-            PublicKeyDto publicKeyDto = objectMapper.readValue(publicKeyString, PublicKeyDto.class);
+            PublicKeyDto publicKeyDto;
+            if(publicKeyString == null) {
+                publicKeyDto = null;
+            } else {
+                publicKeyDto = objectMapper.readValue(publicKeyString, PublicKeyDto.class);
+            }
             return new UserDto(user.getUsername(), user.getEmail(), publicKeyDto);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Could not parse key");
