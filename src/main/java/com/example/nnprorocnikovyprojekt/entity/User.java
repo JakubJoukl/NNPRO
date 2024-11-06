@@ -27,9 +27,8 @@ public class User implements UserDetails {
     @Column
     private String password;
 
-    //TODO prejmenovat
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<PublicKey> publicKey = new ArrayList<>();
+    private List<PublicKey> publicKeys = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     private List<ResetToken> resetTokens = new ArrayList<>();
@@ -87,16 +86,16 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public List<PublicKey> getPublicKey() {
-        return publicKey;
+    public List<PublicKey> getPublicKeys() {
+        return publicKeys;
     }
 
     public Optional<PublicKey> getActivePublicKey() {
-        return publicKey.stream().filter(PublicKey::isValid).findFirst();
+        return publicKeys.stream().filter(PublicKey::isValid).findFirst();
     }
 
-    public void setPublicKey(List<PublicKey> publicKey) {
-        this.publicKey = publicKey;
+    public void setPublicKeys(List<PublicKey> publicKey) {
+        this.publicKeys = publicKey;
     }
 
     public List<ResetToken> getResetTokens() {

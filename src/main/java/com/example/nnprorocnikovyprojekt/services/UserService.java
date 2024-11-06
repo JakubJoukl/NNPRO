@@ -5,12 +5,15 @@ import com.example.nnprorocnikovyprojekt.Utility.Utils;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
+import com.example.nnprorocnikovyprojekt.entity.PublicKey;
 import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
 import com.example.nnprorocnikovyprojekt.repositories.ResetTokenRepository;
 import com.example.nnprorocnikovyprojekt.repositories.UserRepository;
 import com.example.nnprorocnikovyprojekt.repositories.VerificationCodeRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +50,7 @@ public class UserService implements UserDetailsService {
     @Autowired
     private ModelMapper modelMapper;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
     private SecureRandom secureRandom = new SecureRandom();
     private Integer RANDOM_BOUND = 999999;
 
@@ -156,7 +160,7 @@ public class UserService implements UserDetailsService {
         return false;
     }
 
-    public void updateUser(UpdateUserDto updateUserDto) {
+    public void updateUser(UpdateUserDto updateUserDto) throws JsonProcessingException {
         User user = getUserFromContext();
         if(!userPasswordMatches(updateUserDto.getConfirmationPassword(), user)) {
             throw new RuntimeException("Password does not match");
@@ -164,8 +168,11 @@ public class UserService implements UserDetailsService {
         if(updateUserDto.getEmail() != null || updateUserDto.getPassword() != null || updateUserDto.getPublicKey() != null){
             if(updateUserDto.getEmail() != null) user.setEmail(updateUserDto.getEmail());
             if(updateUserDto.getPassword() != null) user.setPassword(encryptPassword(updateUserDto.getPassword()));
-            //TODO public key
-            if(updateUserDto.getPublicKey() != null) user.setPublicKey(null);
+            if(updateUserDto.getPublicKey() != null) {
+                user.getActivePublicKey().ifPresent(publicKey -> publicKey.setValid(false));
+                user.getPublicKeys().add(new PublicKey(objectMapper.writeValueAsString(updateUserDto.getPublicKey()), LocalDateTime.now(), true, user));
+            }
+            if(updateUserDto.getPublicKey() != null) user.setPublicKeys(null);
             saveUser(user);
         }
     }

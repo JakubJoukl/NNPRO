@@ -25,13 +25,19 @@ public class PublicKey {
     @NotNull
     private boolean valid;
 
-    @Column
-    @NotNull
-    private String fingerprint;
-
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
+    public PublicKey() {
+    }
+
+    public PublicKey(String key, LocalDateTime creationDate, boolean valid, User owner) {
+        this.key = key;
+        this.creationDate = creationDate;
+        this.valid = valid;
+        this.owner = owner;
+    }
 
     public Integer getPublicKeyId() {
         return publicKeyId;
@@ -63,14 +69,6 @@ public class PublicKey {
 
     public void setValid(boolean valid) {
         this.valid = valid;
-    }
-
-    public String getFingerprint() {
-        return fingerprint;
-    }
-
-    public void setFingerprint(String fingerprint) {
-        this.fingerprint = fingerprint;
     }
 
     public User getOwner() {

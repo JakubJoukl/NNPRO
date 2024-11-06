@@ -1,9 +1,6 @@
 package com.example.nnprorocnikovyprojekt.controllers;
 
-import com.example.nnprorocnikovyprojekt.dtos.conversation.AddUserToConversationDto;
-import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageResponseDto;
-import com.example.nnprorocnikovyprojekt.dtos.conversation.MessageDto;
-import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
+import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.entity.Conversation;
@@ -17,6 +14,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 @Controller("chat")
 public class ChatController {
@@ -58,8 +57,18 @@ public class ChatController {
     @PostMapping("/addUserToConversation")
     public ResponseEntity<?> addUserToConversation(@RequestBody AddUserToConversationDto addUserToConversationDto){
         try {
-            conversationService.addUserToConversation(addUserToConversationDto);
-            return ResponseEntity.status(200).body(new GeneralResponseDto("User added to conversation"));
+            AddUserToConversationResponse addUserToConversationResponse = conversationService.addUserToConversation(addUserToConversationDto);
+            return ResponseEntity.status(200).body(addUserToConversationResponse);
+        } catch (Exception e){
+            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));
+        }
+    }
+
+    @PostMapping("/getConversationMessages")
+    public ResponseEntity<?> getConversationMessages(@RequestBody GetConversationMessagesDto getConversationMessagesDto){
+        try {
+            List<MessageDto> messageDtos = conversationService.getConversationMessages(getConversationMessagesDto);
+            return ResponseEntity.status(200).body(messageDtos);
         } catch (Exception e){
             return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));
         }

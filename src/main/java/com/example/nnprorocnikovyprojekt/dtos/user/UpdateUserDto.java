@@ -7,7 +7,7 @@ public class UpdateUserDto {
 
     private String email;
 
-    private String publicKey;
+    private PublicKeyDto publicKey;
 
     public String getPassword() {
         return password;
@@ -25,11 +25,11 @@ public class UpdateUserDto {
         this.email = email;
     }
 
-    public String getPublicKey() {
+    public PublicKeyDto getPublicKey() {
         return publicKey;
     }
 
-    public void setPublicKey(String publicKey) {
+    public void setPublicKey(PublicKeyDto publicKey) {
         this.publicKey = publicKey;
     }
 
