@@ -158,4 +158,14 @@ public class UserController {
             return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to add contact"));
         }
     }
+
+    @GetMapping("/getCurrentUserProfile")
+    public ResponseEntity<?> getCurrentUserProfile(){
+        try {
+            UserDto responseUserDto = userService.getUserData();
+            return ResponseEntity.status(200).body(responseUserDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to retrieve user details"));
+        }
+    }
 }

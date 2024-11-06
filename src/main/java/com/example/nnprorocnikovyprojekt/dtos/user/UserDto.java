@@ -5,15 +5,15 @@ public class UserDto {
 
     private String email;
 
-    private String publicKey;
+    private PublicKeyDto publicKeyDto;
 
     public UserDto() {
     }
 
-    public UserDto(String name, String email, String publicKey) {
+    public UserDto(String name, String email, PublicKeyDto publicKey) {
         this.name = name;
         this.email = email;
-        this.publicKey = publicKey;
+        this.publicKeyDto = publicKey;
     }
 
     public String getName() {
@@ -32,11 +32,11 @@ public class UserDto {
         this.email = email;
     }
 
-    public String getPublicKey() {
-        return publicKey;
+    public PublicKeyDto getPublicKeyDto() {
+        return publicKeyDto;
     }
 
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
+    public void setPublicKeyDto(PublicKeyDto publicKeyDto) {
+        this.publicKeyDto = publicKeyDto;
     }
 }

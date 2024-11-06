@@ -65,8 +65,7 @@ public class UserService implements UserDetailsService {
 
     public User getUserFromContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = getUserByUsername(authentication.getName());
-        return user;
+        return getUserByUsername(authentication.getName());
     }
 
     public ResetToken getResetTokenByValue(String resetTokenValue){
@@ -195,16 +194,28 @@ public class UserService implements UserDetailsService {
 
     private ContactsPageResponseDto contactsToContactsPageResponseDtos(List<User> contacts, PageInfoRequestWrapper pageInfoRequestWrapper, Integer total){
         List<UserDto> userDtos = contacts.stream()
-                .map(user -> {
-                    String publicKey = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKey() : null;
-                    return new UserDto(user.getUsername(), user.getEmail(), publicKey);
-                })
+                .map(this::userToUserDto)
                 .collect(Collectors.toList());
 
         ContactsPageResponseDto contactsPageResponseDto = new ContactsPageResponseDto();
         contactsPageResponseDto.setItemList(userDtos);
         contactsPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(pageInfoRequestWrapper.getPageSize(), pageInfoRequestWrapper.getPageIndex(), (long)total));
         return contactsPageResponseDto;
+    }
+
+    private UserDto userToUserDto(User user) {
+        String publicKeyString = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKey() : null;
+        try {
+            PublicKeyDto publicKeyDto = objectMapper.readValue(publicKeyString, PublicKeyDto.class);
+            return new UserDto(user.getUsername(), user.getEmail(), publicKeyDto);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not parse key");
+        }
+    }
+
+    public UserDto getUserData() {
+        User user = getUserFromContext();
+        return userToUserDto(user);
     }
 
 

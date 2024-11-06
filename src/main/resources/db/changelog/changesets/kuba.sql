@@ -69,3 +69,6 @@ ALTER TABLE conversation MODIFY conversation_id int NOT NULL AUTO_INCREMENT;
 ALTER TABLE conversation_user ADD CONSTRAINT FKb71b5q60yd0bfc1eb8fgwm4sk FOREIGN KEY (conversation_id) REFERENCES conversation (conversation_id);
 
 ALTER TABLE message ADD CONSTRAINT FK6yskk3hxw5sklwgi25y6d5u1l FOREIGN KEY (conversation_id) REFERENCES conversation (conversation_id);
+
+-- changeset Kuba:1730919867185-1
+ALTER TABLE public_key DROP COLUMN fingerprint;
