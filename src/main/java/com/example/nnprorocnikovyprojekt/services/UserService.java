@@ -204,7 +204,7 @@ public class UserService implements UserDetailsService {
     }
 
     private UserDto userToUserDto(User user) {
-        String publicKeyString = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKey() : null;
+        String publicKeyString = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKey() : "";
         try {
             PublicKeyDto publicKeyDto = objectMapper.readValue(publicKeyString, PublicKeyDto.class);
             return new UserDto(user.getUsername(), user.getEmail(), publicKeyDto);
