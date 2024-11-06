@@ -223,7 +223,6 @@ public class UserService implements UserDetailsService {
         return userToUserDto(user);
     }
 
-
     //TODO zkopirovane -> bude vubec potreba?
     /*
     public UserDto convertToDto(User user) {

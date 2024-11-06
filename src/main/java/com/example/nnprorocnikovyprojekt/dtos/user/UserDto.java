@@ -1,7 +1,7 @@
 package com.example.nnprorocnikovyprojekt.dtos.user;
 
 public class UserDto {
-    private String name;
+    private String username;
 
     private String email;
 
@@ -10,18 +10,18 @@ public class UserDto {
     public UserDto() {
     }
 
-    public UserDto(String name, String email, PublicKeyDto publicKey) {
-        this.name = name;
+    public UserDto(String username, String email, PublicKeyDto publicKey) {
+        this.username = username;
         this.email = email;
         this.publicKeyDto = publicKey;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
