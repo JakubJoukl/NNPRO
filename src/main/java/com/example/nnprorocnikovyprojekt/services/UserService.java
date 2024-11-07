@@ -173,7 +173,6 @@ public class UserService implements UserDetailsService {
                 user.getActivePublicKey().ifPresent(publicKey -> publicKey.setValid(false));
                 user.getPublicKeys().add(new PublicKey(objectMapper.writeValueAsString(updateUserDto.getPublicKey()), LocalDateTime.now(), true, user));
             }
-            if(updateUserDto.getPublicKey() != null) user.setPublicKeys(null);
             saveUser(user);
         }
     }
