@@ -11,6 +11,7 @@ import com.example.nnprorocnikovyprojekt.security.JwtService;
 import com.example.nnprorocnikovyprojekt.services.EmailService;
 import com.example.nnprorocnikovyprojekt.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,7 +43,7 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody LoginDto authRequest) {
         boolean captchaIsValid = captchaService.validateCaptcha(authRequest.getCaptchaToken());
         if(!captchaIsValid) {
-            return ResponseEntity.status(403).body(new GeneralResponseDto("Captcha is not valid"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GeneralResponseDto("Captcha is not valid"));
         }
 
         Authentication authentication = authenticationManager.authenticate(
@@ -55,13 +56,13 @@ public class UserController {
             if(verificationCode != null) {
                 ExpirationDateDto expirationDateDto = new ExpirationDateDto();
                 expirationDateDto.setExpirationDate(verificationCode.getExpirationDate());
-                return ResponseEntity.status(200).body(expirationDateDto);
+                return ResponseEntity.status(HttpStatus.OK).body(expirationDateDto);
             } else {
-                return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to send verification code"));
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to send verification code"));
             }
-            //return ResponseEntity.status(200).body(jwtService.generateToken(authRequest.getUsername()));
+            //return ResponseEntity.status(HttpStatus.OK).body(jwtService.generateToken(authRequest.getUsername()));
         } else {
-            return ResponseEntity.status(403).body(new GeneralResponseDto("Invalid username password combination"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GeneralResponseDto("Invalid username password combination"));
         }
     }
 
@@ -69,7 +70,7 @@ public class UserController {
     public ResponseEntity<?> verify2Fa(@RequestBody VerificationDto verificationDto) {
         boolean captchaIsValid = captchaService.validateCaptcha(verificationDto.getCaptchaToken());
         if(!captchaIsValid) {
-            return ResponseEntity.status(403).body(new GeneralResponseDto("Captcha is not valid"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GeneralResponseDto("Captcha is not valid"));
         }
 
         boolean verificationCodeMatches = userService.verifyVerificationCode(verificationDto.getUsername(), verificationDto.getVerificationCode());
@@ -78,9 +79,9 @@ public class UserController {
             String jwtToken = jwtService.generateToken(verificationDto.getUsername());
             JwtTokenDto jwtTokenDto = new JwtTokenDto();
             jwtTokenDto.setJwtToken(jwtToken);
-            return ResponseEntity.status(200).body(jwtTokenDto);
+            return ResponseEntity.status(HttpStatus.OK).body(jwtTokenDto);
         } else {
-            return ResponseEntity.status(403).body(new GeneralResponseDto("Verification token is not valid"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GeneralResponseDto("Verification token is not valid"));
         }
     }
 
@@ -88,24 +89,24 @@ public class UserController {
     public ResponseEntity<?> register(@RequestBody RegistrationDto registrationRequest){
         boolean captchaIsValid = captchaService.validateCaptcha(registrationRequest.getCaptchaToken());
         if(!captchaIsValid) {
-            return ResponseEntity.status(403).body(new GeneralResponseDto("Captcha is not valid"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GeneralResponseDto("Captcha is not valid"));
         }
 
         boolean userCreated = userService.registerUser(registrationRequest);
-        if(!userCreated) return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to create user"));
-        else return ResponseEntity.status(201).body(new GeneralResponseDto("User created"));
+        if(!userCreated) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to create user"));
+        else return ResponseEntity.status(HttpStatus.CREATED).body(new GeneralResponseDto("User created"));
     }
 
     //TODO bude potreba
     @PostMapping("/resetPassword")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto authRequest) {
         User user = userService.getUserByUsername(authRequest.getUsername());
-        if(user == null) return ResponseEntity.status(404).body(new GeneralResponseDto("User not found"));
+        if(user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GeneralResponseDto("User not found"));
         emailService.sendResetTokenEmail(user);
         //if(emailSent) {
-        return ResponseEntity.status(200).body(new GeneralResponseDto("Reset email send"));
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Reset email send"));
         //} else {
-        //    return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to send email"));
+        //    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to send email"));
         //}
     }
 
@@ -114,7 +115,7 @@ public class UserController {
     public ResponseEntity<?> newPassword(@RequestBody NewPasswordDto resetPasswordRequest){
         ResetToken resetToken = userService.getResetTokenByValue(resetPasswordRequest.getToken());
 
-        if(resetToken == null) return ResponseEntity.status(400).body(new GeneralResponseDto("Reset token not found"));
+        if(resetToken == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Reset token not found"));
 
         boolean resetTokenIsValid = resetToken.isValid() && LocalDateTime.now().isBefore(resetToken.getExpirationDate());
         if(resetTokenIsValid){
@@ -125,17 +126,17 @@ public class UserController {
         resetToken.setValid(false);
         userService.saveResetToken(resetToken);
 
-        if(resetTokenIsValid) return ResponseEntity.status(200).body(new GeneralResponseDto("Password reset"));
-        else return ResponseEntity.status(400).body(new GeneralResponseDto("Reset token was already used or expired"));
+        if(resetTokenIsValid) return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Password reset"));
+        else return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Reset token was already used or expired"));
     }
 
     @PutMapping("/updateUser")
     public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto){
         try {
             userService.updateUser(updateUserDto);
-            return ResponseEntity.status(200).body(new GeneralResponseDto("User updated"));
+            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User updated"));
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to update user"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to update user"));
         }
     }
 
@@ -143,9 +144,9 @@ public class UserController {
     public ResponseEntity<?> addContact(@RequestBody AddContactDto addContactDto) {
         try {
             userService.addContact(addContactDto);
-            return ResponseEntity.status(200).body(new GeneralResponseDto("Contact added"));
+            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact added"));
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to add contact"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to add contact"));
         }
     }
 
@@ -153,9 +154,9 @@ public class UserController {
     public ResponseEntity<?> listContacts(@RequestBody PageInfoRequestWrapper pageInfoRequestWrapper) {
         try {
             UserPageResponseDto userPageResponseDto = userService.listContacts(pageInfoRequestWrapper);
-            return ResponseEntity.status(200).body(userPageResponseDto);
+            return ResponseEntity.status(HttpStatus.OK).body(userPageResponseDto);
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to add contact"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to add contact"));
         }
     }
 
@@ -163,9 +164,9 @@ public class UserController {
     public ResponseEntity<?> getCurrentUserProfile(){
         try {
             UserDto responseUserDto = userService.getUserData();
-            return ResponseEntity.status(200).body(responseUserDto);
+            return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to retrieve user details"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to retrieve user details"));
         }
     }
 
@@ -173,9 +174,9 @@ public class UserController {
     public ResponseEntity<?> searchUsers(@RequestBody SearchUserDtoRequest searchUserDtoRequest){
         try {
             UserPageResponseDto responseUserDto = userService.searchUsers(searchUserDtoRequest);
-            return ResponseEntity.status(200).body(responseUserDto);
+            return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(new GeneralResponseDto("Failed to retrieve users"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to retrieve users"));
         }
     }
 }

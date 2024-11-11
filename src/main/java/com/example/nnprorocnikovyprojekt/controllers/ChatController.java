@@ -8,6 +8,7 @@ import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.services.ConversationService;
 import com.example.nnprorocnikovyprojekt.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -39,18 +40,18 @@ public class ChatController {
             Conversation conversation = conversationService.getConversationById(conversationId);
             conversationService.sendMessageToAllSubscribersExceptUser(user, conversation, messageDto.getMessage());
         } catch (Exception e){
-            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to process message"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process message"));
         }
-        return ResponseEntity.status(200).body(new GeneralResponseDto("Message processed, receivers notified"));
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
     }
 
     @PostMapping(path = "/listUserConversation")
     public ResponseEntity<?> listUserConversation(@RequestBody PageInfoRequestWrapper pageInfoRequestWrapper){
         try {
             ConversationPageResponseDto userConversations = conversationService.getConversationsByPage(pageInfoRequestWrapper);
-            return ResponseEntity.status(200).body(userConversations);
+            return ResponseEntity.status(HttpStatus.OK).body(userConversations);
         } catch (Exception e){
-            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get conversations"));
         }
     }
 
@@ -58,9 +59,9 @@ public class ChatController {
     public ResponseEntity<?> addUserToConversation(@RequestBody AddUserToConversationDto addUserToConversationDto){
         try {
             AddUserToConversationResponse addUserToConversationResponse = conversationService.addUserToConversation(addUserToConversationDto);
-            return ResponseEntity.status(200).body(addUserToConversationResponse);
+            return ResponseEntity.status(HttpStatus.OK).body(addUserToConversationResponse);
         } catch (Exception e){
-            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get conversations"));
         }
     }
 
@@ -68,11 +69,18 @@ public class ChatController {
     public ResponseEntity<?> getConversationMessages(@RequestBody GetConversationMessagesDto getConversationMessagesDto){
         try {
             List<MessageDto> messageDtos = conversationService.getConversationMessages(getConversationMessagesDto);
-            return ResponseEntity.status(200).body(messageDtos);
+            return ResponseEntity.status(HttpStatus.OK).body(messageDtos);
         } catch (Exception e){
-            return ResponseEntity.status(500).body(new GeneralResponseDto("Failed to get conversations"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get conversations"));
         }
     }
+
+    /*@PostMapping("/createConversation")
+    public ResponseEntity<?> createConversation(@RequestBody CreateConversationDto createConversationDto){
+        try{
+            
+        } catch ()
+    }*/
 
     /*@MessageMapping("/send/{conversationId}")
     @SendTo("/topic/messages/{conversationId}")
