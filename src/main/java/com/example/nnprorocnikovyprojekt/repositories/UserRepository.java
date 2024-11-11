@@ -16,6 +16,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> getUserByUsername(String username);
 
-    @Query("SELECT u FROM User u WHERE u.username LIKE CONCAT(:username, '%')")
-    Page<User> findUsersByUsernameLike(@Param("username") String username, Pageable pageable);
+    Page<User> findUsersByUsernameStartingWith(@Param("username") String username, Pageable pageable);
 }

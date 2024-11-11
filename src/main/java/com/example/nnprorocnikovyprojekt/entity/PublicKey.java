@@ -15,7 +15,7 @@ public class PublicKey {
 
     @Column
     @NotNull
-    private String key;
+    private String keyValue;
 
     @Column
     @NotNull
@@ -32,8 +32,8 @@ public class PublicKey {
     public PublicKey() {
     }
 
-    public PublicKey(String key, LocalDateTime creationDate, boolean valid, User owner) {
-        this.key = key;
+    public PublicKey(String keyValue, LocalDateTime creationDate, boolean valid, User owner) {
+        this.keyValue = keyValue;
         this.creationDate = creationDate;
         this.valid = valid;
         this.owner = owner;
@@ -47,12 +47,12 @@ public class PublicKey {
         this.publicKeyId = publicKeyId;
     }
 
-    public String getKey() {
-        return key;
+    public String getKeyValue() {
+        return keyValue;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setKeyValue(String key) {
+        this.keyValue = key;
     }
 
     public LocalDateTime getCreationDate() {

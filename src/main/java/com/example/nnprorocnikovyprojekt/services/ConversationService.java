@@ -81,7 +81,7 @@ public class ConversationService {
         ConversationUser conversationUser = new ConversationUser(user, conversation);
         saveConversationUser(conversationUser);
         if(user.getActivePublicKey().orElse(null) == null) return new AddUserToConversationResponse();
-        else return new AddUserToConversationResponse(objectMapper.readValue(user.getActivePublicKey().get().getKey(), PublicKeyDto.class));
+        else return new AddUserToConversationResponse(objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class));
     }
 
     @Transactional(rollbackFor = Exception.class)

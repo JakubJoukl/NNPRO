@@ -2,8 +2,6 @@ package com.example.nnprorocnikovyprojekt.services;
 
 
 import com.example.nnprorocnikovyprojekt.Utility.Utils;
-import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationNameDto;
-import com.example.nnprorocnikovyprojekt.dtos.conversation.ConversationPageResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
@@ -205,7 +203,7 @@ public class UserService implements UserDetailsService {
     }
 
     private UserDto userToUserDto(User user) {
-        String publicKeyString = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKey() : null;
+        String publicKeyString = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKeyValue() : null;
         try {
             PublicKeyDto publicKeyDto;
             if(publicKeyString == null) {
@@ -225,8 +223,8 @@ public class UserService implements UserDetailsService {
     }
 
     public UserPageResponseDto searchUsers(SearchUserDtoRequest searchUserDtoRequest) {
-        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "conversationId");
-        Page<User> usersPage = userRepository.findUsersByUsernameLike(searchUserDtoRequest.getSearchTerm(), pageInfo);
+        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "userId");
+        Page<User> usersPage = userRepository.findUsersByUsernameStartingWith(searchUserDtoRequest.getUsername(), pageInfo);
         return usersToUserPageResponseDto(usersPage);
     }
 

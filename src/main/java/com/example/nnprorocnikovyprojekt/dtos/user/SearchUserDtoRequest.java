@@ -5,7 +5,7 @@ import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 public class SearchUserDtoRequest {
     private PageInfoDtoRequest pageInfo;
 
-    private String searchTerm;
+    private String username;
 
     public PageInfoDtoRequest getPageInfo() {
         return pageInfo;
@@ -15,11 +15,11 @@ public class SearchUserDtoRequest {
         this.pageInfo = pageInfo;
     }
 
-    public String getSearchTerm() {
-        return searchTerm;
+    public String getUsername() {
+        return username;
     }
 
-    public void setSearchTerm(String searchTerm) {
-        this.searchTerm = searchTerm;
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

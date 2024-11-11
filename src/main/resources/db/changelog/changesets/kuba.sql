@@ -72,3 +72,9 @@ ALTER TABLE message ADD CONSTRAINT FK6yskk3hxw5sklwgi25y6d5u1l FOREIGN KEY (conv
 
 -- changeset Kuba:1730919867185-1
 ALTER TABLE public_key DROP COLUMN fingerprint;
+
+-- changeset Kuba:1731351661524-1
+ALTER TABLE public_key ADD key_value VARCHAR(255) NOT NULL;
+
+-- changeset Kuba:1731351661524-2
+ALTER TABLE public_key DROP COLUMN `key`;
