@@ -69,12 +69,12 @@ public class ConversationService {
         subscriptions.forEach(subscription -> simpMessagingTemplate.convertAndSendToUser(subscription.getUser().getUsername(), "/topic/" + conversation.getConversationId(), content));
     }
 
-    public AddUserToConversationResponse addUserToConversation(AddUserToConversationDto addUserToConversationDto) throws JsonProcessingException {
-        User user = userService.getUserByUsername(addUserToConversationDto.getUsername());
+    public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
+        User user = userService.getUserByUsername(addRemoveUserToConversationDto.getUsername());
 
         if(user == null) throw new RuntimeException("User is null");
 
-        Conversation conversation = getConversationById(addUserToConversationDto.getConversationId());
+        Conversation conversation = getConversationById(addRemoveUserToConversationDto.getConversationId());
 
         if(conversation == null) throw new RuntimeException("Conversation is null");
 
@@ -87,6 +87,11 @@ public class ConversationService {
     @Transactional(rollbackFor = Exception.class)
     public ConversationUser saveConversationUser(ConversationUser conversationUser){
         return conversationUserRepository.save(conversationUser);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Conversation saveConversation(Conversation conversation) {
+        return conversationRepository.save(conversation);
     }
 
     public ConversationPageResponseDto getConversationsByPage(PageInfoRequestWrapper conversationPageinfoRequestDto) {
@@ -141,5 +146,36 @@ public class ConversationService {
         messageDto.setConversationId(message.getConversation().getConversationId());
         messageDto.setDateSend(message.getDateSend());
         return messageDto;
+    }
+
+    private List<User> getListOfUsersFromCreateConversationDto(CreateConversationDto createConversationDto) {
+        List<User> users = createConversationDto.getUsers()
+                .stream().map(username -> userService.getUserByUsername(username))
+                .toList();
+        return users;
+    }
+
+    public ConversationNameDto createConversation(CreateConversationDto createConversationDto) {
+        List<User> users = getListOfUsersFromCreateConversationDto(createConversationDto);
+        Conversation conversation = new Conversation();
+        conversation.setConversationName(createConversationDto.getName());
+
+        List<ConversationUser> conversationUsers = users.stream()
+                .map(user -> new ConversationUser(user, conversation))
+                .toList();
+
+        conversation.getConversationUsers().addAll(conversationUsers);
+        Conversation returnedConversation = conversationRepository.save(conversation);
+        return convertConversationToConversationNameDto(returnedConversation);
+    }
+
+    public void removeUserFromConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) {
+        Conversation conversation = getConversationById(addRemoveUserToConversationDto.getConversationId());
+        int sizeBeforeRemove = conversation.getConversationUsers().size();
+        conversation.getConversationUsers().removeIf(conversationUser -> conversationUser.getUser().getUsername().equals(addRemoveUserToConversationDto.getUsername()));
+        saveConversation(conversation);
+        if(sizeBeforeRemove != conversation.getConversationUsers().size() + 1){
+            throw new RuntimeException("Exactly 1 element was supposed to be deleted");
+        }
     }
 }

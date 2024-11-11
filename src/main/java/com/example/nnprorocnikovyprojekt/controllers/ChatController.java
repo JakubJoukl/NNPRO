@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -40,7 +41,7 @@ public class ChatController {
             Conversation conversation = conversationService.getConversationById(conversationId);
             conversationService.sendMessageToAllSubscribersExceptUser(user, conversation, messageDto.getMessage());
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process message"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process the message"));
         }
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
     }
@@ -56,12 +57,23 @@ public class ChatController {
     }
 
     @PostMapping("/addUserToConversation")
-    public ResponseEntity<?> addUserToConversation(@RequestBody AddUserToConversationDto addUserToConversationDto){
+    public ResponseEntity<?> addUserToConversation(@RequestBody AddRemoveUserToConversationDto addRemoveUserToConversationDto){
         try {
-            AddUserToConversationResponse addUserToConversationResponse = conversationService.addUserToConversation(addUserToConversationDto);
+            AddUserToConversationResponse addUserToConversationResponse = conversationService.addUserToConversation(addRemoveUserToConversationDto);
             return ResponseEntity.status(HttpStatus.OK).body(addUserToConversationResponse);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get conversations"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to add user to the conversation"));
+        }
+    }
+
+    //Asi ne remove ale leave?
+    @DeleteMapping("/leaveConversation")
+    public ResponseEntity<?> removeUserFromConversation(@RequestBody AddRemoveUserToConversationDto addRemoveUserToConversationDto){
+        try {
+            conversationService.removeUserFromConversation(addRemoveUserToConversationDto);
+            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User left the conversation"));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to remove user from the conversation"));
         }
     }
 
@@ -75,12 +87,15 @@ public class ChatController {
         }
     }
 
-    /*@PostMapping("/createConversation")
+    @PostMapping("/createConversation")
     public ResponseEntity<?> createConversation(@RequestBody CreateConversationDto createConversationDto){
         try{
-            
-        } catch ()
-    }*/
+            conversationService.createConversation(createConversationDto);
+            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Conversation created"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to create the conversation"));
+        }
+    }
 
     /*@MessageMapping("/send/{conversationId}")
     @SendTo("/topic/messages/{conversationId}")

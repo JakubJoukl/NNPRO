@@ -34,7 +34,7 @@ public class Conversation {
     }
 
     public List<ConversationUser> getConversationUsers() {
-        return conversationUsers;
+        return conversationUsers = new ArrayList<>();
     }
 
     public List<ConversationUser> getActiveConversationUsers() {

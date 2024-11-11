@@ -1,6 +1,6 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
-public class AddUserToConversationDto {
+public class AddRemoveUserToConversationDto {
     private Integer conversationId;
 
     private String username;

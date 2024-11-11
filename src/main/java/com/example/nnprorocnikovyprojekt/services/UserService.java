@@ -223,8 +223,9 @@ public class UserService implements UserDetailsService {
     }
 
     public UserPageResponseDto searchUsers(SearchUserDtoRequest searchUserDtoRequest) {
+        User user = getUserFromContext();
         Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "userId");
-        Page<User> usersPage = userRepository.findUsersByUsernameStartingWith(searchUserDtoRequest.getUsername(), pageInfo);
+        Page<User> usersPage = userRepository.findUsersByUsernameStartingWithAndUsernameNot(searchUserDtoRequest.getUsername(), user.getUsername(), pageInfo);
         return usersToUserPageResponseDto(usersPage);
     }
 
