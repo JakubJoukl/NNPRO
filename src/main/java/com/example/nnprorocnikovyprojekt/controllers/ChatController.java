@@ -66,7 +66,6 @@ public class ChatController {
         }
     }
 
-    //Asi ne remove ale leave?
     @DeleteMapping("/leaveConversation")
     public ResponseEntity<?> removeUserFromConversation(@RequestBody AddRemoveUserToConversationDto addRemoveUserToConversationDto){
         try {
