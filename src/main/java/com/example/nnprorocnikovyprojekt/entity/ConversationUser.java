@@ -12,12 +12,12 @@ public class ConversationUser {
     @EmbeddedId
     private ConversationUserId conversationUserId;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @MapsId("conversationId")
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
@@ -33,6 +33,7 @@ public class ConversationUser {
         this.user = user;
         this.conversation = conversation;
         this.isActive = true;
+        this.conversationUserId = new ConversationUserId(conversation.getConversationId(), user.getUserId());
     }
 
     public ConversationUserId getConversationUserId() {
@@ -70,8 +71,20 @@ public class ConversationUser {
 
 @Embeddable
 class ConversationUserId implements Serializable {
+    @Column(name = "conversation_id")
     private Integer conversationId;
+
+    @Column(name = "user_id")
     private Integer userId;
+
+    public ConversationUserId(Integer conversationId, Integer userId) {
+        this.conversationId = conversationId;
+        this.userId = userId;
+    }
+
+    public ConversationUserId() {
+
+    }
 
     public Integer getConversationId() {
         return conversationId;

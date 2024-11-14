@@ -166,6 +166,7 @@ public class ConversationService {
         return users;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public ConversationNameDto createConversation(CreateConversationDto createConversationDto) {
         User currentUser = userService.getUserFromContext();
         List<User> users = getListOfUsersFromCreateConversationDto(createConversationDto);
@@ -173,13 +174,14 @@ public class ConversationService {
 
         Conversation conversation = new Conversation();
         conversation.setConversationName(createConversationDto.getName());
+        Conversation updatedConversation = conversationRepository.save(conversation);
 
         List<ConversationUser> conversationUsers = users.stream()
-                .map(user -> new ConversationUser(user, conversation))
+                .map(user -> new ConversationUser(user, updatedConversation))
                 .collect(Collectors.toList());
 
-        conversation.getConversationUsers().addAll(conversationUsers);
-        Conversation returnedConversation = conversationRepository.save(conversation);
+        updatedConversation.getConversationUsers().addAll(conversationUsers);
+        Conversation returnedConversation = conversationRepository.save(updatedConversation);
         return convertConversationToConversationNameDto(returnedConversation);
     }
 
