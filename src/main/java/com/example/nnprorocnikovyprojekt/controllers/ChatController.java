@@ -23,27 +23,20 @@ import java.util.List;
 public class ChatController {
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private ConversationService conversationService;
 
     //https://medium.com/@poojithairosha/spring-boot-3-authenticate-websocket-connections-with-jwt-tokens-2b4ff60532b6
     //Asi chci destination variable a nepotrebuji hodnotu z Dto?
     @MessageMapping("/{conversationId}")
     public ResponseEntity<?> chat(MessageDto messageDto, @DestinationVariable Integer conversationId) {
-        User user = userService.getUserFromContext();
-
-        if(user == null) return ResponseEntity.status(403).body(new GeneralResponseDto("User not found"));
-
+        //TODO sout po otestovani funkcionalit smazat
         System.out.format("Message received: {%s}", messageDto.getMessage());
         try {
-            Conversation conversation = conversationService.getConversationById(conversationId);
-            conversationService.sendMessageToAllSubscribersExceptUser(user, conversation, messageDto.getMessage());
+            conversationService.sendMessageToAllSubscribersExceptUser(messageDto, conversationId);
+            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process the message"));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
     }
 
     @PostMapping(path = "/listUserConversation")

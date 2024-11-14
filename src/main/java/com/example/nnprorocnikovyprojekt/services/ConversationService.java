@@ -1,6 +1,7 @@
 package com.example.nnprorocnikovyprojekt.services;
 
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
+import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.PublicKeyDto;
@@ -19,6 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,14 +62,20 @@ public class ConversationService {
 
     //Neukladame zpravy, ktere nejsme schopni odeslat?
     @Transactional(rollbackFor = Exception.class)
-    public void sendMessageToAllSubscribersExceptUser(User user, Conversation conversation, String content) {
-        Message message = new Message(user, conversation, content);
+    public void sendMessageToAllSubscribersExceptUser(MessageDto messageDto, Integer conversationId) {
+        User user = userService.getUserFromContext();
+
+        if(user == null) throw  new RuntimeException("User not found");
+
+        Conversation conversation = getConversationById(conversationId);
+
+        Message message = new Message(user, conversation, messageDto.getMessage());
         messageService.saveMessage(message);
         List<ConversationUser> subscriptions = conversation.getActiveConversationUsers()
                 .stream()
                 .filter(conversationUser -> !conversationUser.getUser().getUsername().equals(user.getUsername()))
                 .toList();
-        subscriptions.forEach(subscription -> simpMessagingTemplate.convertAndSendToUser(subscription.getUser().getUsername(), "/topic/" + conversation.getConversationId(), content));
+        subscriptions.forEach(subscription -> simpMessagingTemplate.convertAndSendToUser(subscription.getUser().getUsername(), "/topic/" + conversation.getConversationId(), messageDto.getMessage()));
     }
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {

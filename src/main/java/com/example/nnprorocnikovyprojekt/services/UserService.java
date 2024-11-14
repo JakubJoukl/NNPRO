@@ -2,13 +2,16 @@ package com.example.nnprorocnikovyprojekt.services;
 
 
 import com.example.nnprorocnikovyprojekt.Utility.Utils;
+import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.*;
+import com.example.nnprorocnikovyprojekt.external.CaptchaService;
 import com.example.nnprorocnikovyprojekt.repositories.ResetTokenRepository;
 import com.example.nnprorocnikovyprojekt.repositories.UserRepository;
 import com.example.nnprorocnikovyprojekt.repositories.VerificationCodeRepository;
+import com.example.nnprorocnikovyprojekt.security.JwtService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +21,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -49,6 +56,18 @@ public class UserService implements UserDetailsService {
     private VerificationCodeRepository verificationCodeRepository;
 
     @Autowired
+    private CaptchaService captchaService;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -73,6 +92,21 @@ public class UserService implements UserDetailsService {
         return resetTokenRepository.getResetTokenByToken(resetTokenValue).orElseThrow(() -> new RuntimeException("Nebyl nalezen token"));
     }
 
+    public void newPassword(NewPasswordDto resetPasswordRequest){
+        ResetToken resetToken = getResetTokenByValue(resetPasswordRequest.getToken());
+
+        if(resetToken == null) throw new RuntimeException("Reset token was not found");
+
+        boolean resetTokenIsValid = resetToken.isValid() && LocalDateTime.now().isBefore(resetToken.getExpirationDate());
+        if(resetTokenIsValid){
+            User user = resetToken.getUser();
+            changePassword(resetPasswordRequest.getPassword(), user);
+            saveUser(user);
+        }
+        resetToken.setValid(false);
+        saveResetToken(resetToken);
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void deactivateUserResetTokens(User user){
         user.getResetTokens().forEach(resetToken -> {
@@ -91,6 +125,11 @@ public class UserService implements UserDetailsService {
 
     @Transactional(rollbackFor = Exception.class)
     public boolean registerUser(RegistrationDto registrationRequest) {
+        boolean captchaIsValid = captchaService.validateCaptcha(registrationRequest.getCaptchaToken());
+        if(!captchaIsValid) {
+            throw new RuntimeException("Captcha is not valid");
+        }
+
         boolean alreadyExists = userRepository.getUserByUsername(registrationRequest.getUsername()).isPresent();
         if(alreadyExists) return false;
         else return userRepository.save(new User(registrationRequest.getUsername(), encryptPassword(registrationRequest.getPassword()), registrationRequest.getEmail()))
@@ -254,6 +293,49 @@ public class UserService implements UserDetailsService {
         contactPageResponseDto.setItemList(contactDtos);
         contactPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(page.getSize(), page.getSize(), page.getTotalElements()));
         return contactPageResponseDto;
+    }
+
+    public JwtTokenDto verify2FaAndGetJwtToken(VerificationDto verificationDto) {
+        boolean captchaIsValid = captchaService.validateCaptcha(verificationDto.getCaptchaToken());
+        if(!captchaIsValid) {
+            throw new RuntimeException("Captcha is not valid");
+        }
+
+        boolean verificationCodeMatches = verifyVerificationCode(verificationDto.getUsername(), verificationDto.getVerificationCode());
+
+        if(verificationCodeMatches) {
+            String jwtToken = jwtService.generateToken(verificationDto.getUsername());
+            JwtTokenDto jwtTokenDto = new JwtTokenDto();
+            jwtTokenDto.setJwtToken(jwtToken);
+            return jwtTokenDto;
+        } else {
+            throw new RuntimeException("Verification code does not match");
+        }
+    }
+
+    public ExpirationDateDto loginUser(LoginDto authRequest) {
+        boolean captchaIsValid = captchaService.validateCaptcha(authRequest.getCaptchaToken());
+        if(!captchaIsValid) {
+            throw new RuntimeException("Captcha is not valid");
+        }
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+        );
+
+        if (authentication.isAuthenticated()) {
+            User user = getUserByUsername(authRequest.getUsername());
+            VerificationCode verificationCode = emailService.sendVerificationCodeEmail(user);
+            if(verificationCode != null) {
+                ExpirationDateDto expirationDateDto = new ExpirationDateDto();
+                expirationDateDto.setExpirationDate(verificationCode.getExpirationDate());
+                return expirationDateDto;
+            } else {
+                throw new RuntimeException("Failed to send verification code");
+            }
+        } else {
+            throw new RuntimeException("Failed to authenticate user");
+        }
     }
 
     //TODO zkopirovane -> bude vubec potreba?
