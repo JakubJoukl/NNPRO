@@ -178,8 +178,8 @@ public class UserService implements UserDetailsService {
         resetTokenRepository.save(resetToken);
     }
 
-    public void saveUser(User user){
-        userRepository.save(user);
+    public User saveUser(User user){
+        return userRepository.save(user);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -199,7 +199,7 @@ public class UserService implements UserDetailsService {
         return false;
     }
 
-    public void updateUser(UpdateUserDto updateUserDto) throws JsonProcessingException {
+    public UserDto updateUser(UpdateUserDto updateUserDto) throws JsonProcessingException {
         User user = getUserFromContext();
         if(!userPasswordMatches(updateUserDto.getConfirmationPassword(), user)) {
             throw new RuntimeException("Password does not match");
@@ -211,8 +211,9 @@ public class UserService implements UserDetailsService {
                 user.getActivePublicKey().ifPresent(publicKey -> publicKey.setValid(false));
                 user.getPublicKeys().add(new PublicKey(objectMapper.writeValueAsString(updateUserDto.getPublicKey()), LocalDateTime.now(), true, user));
             }
-            saveUser(user);
+            user = saveUser(user);
         }
+        return userToUserDto(user);
     }
 
     public void addContact(AddContactDto addContactDto) {

@@ -78,8 +78,8 @@ public class UserController {
     @PutMapping("/updateUser")
     public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto){
         try {
-            userService.updateUser(updateUserDto);
-            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User updated"));
+            UserDto userDto = userService.updateUser(updateUserDto);
+            return ResponseEntity.status(HttpStatus.OK).body(userDto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to update user"));
         }
