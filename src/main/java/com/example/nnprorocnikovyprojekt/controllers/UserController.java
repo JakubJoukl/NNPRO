@@ -173,7 +173,7 @@ public class UserController {
     @PostMapping("/searchUsers")
     public ResponseEntity<?> searchUsers(@RequestBody SearchUserDtoRequest searchUserDtoRequest){
         try {
-            UserPageResponseDto responseUserDto = userService.searchUsers(searchUserDtoRequest);
+            ContactPageResponseDto responseUserDto = userService.searchUsers(searchUserDtoRequest);
             return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to retrieve users"));

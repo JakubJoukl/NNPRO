@@ -71,12 +71,14 @@ public class ConversationService {
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
         User user = userService.getUserByUsername(addRemoveUserToConversationDto.getUsername());
-
         if(user == null) throw new RuntimeException("User is null");
 
         Conversation conversation = getConversationById(addRemoveUserToConversationDto.getConversationId());
-
         if(conversation == null) throw new RuntimeException("Conversation is null");
+
+        if(conversation.getConversationUsers().stream().map(ConversationUser::getUser).anyMatch(user1 -> user1.equals(user))){
+            throw new RuntimeException("User is already a member of this conversation");
+        }
 
         ConversationUser conversationUser = new ConversationUser(user, conversation);
         saveConversationUser(conversationUser);
@@ -156,7 +158,10 @@ public class ConversationService {
     }
 
     public ConversationNameDto createConversation(CreateConversationDto createConversationDto) {
+        User currentUser = userService.getUserFromContext();
         List<User> users = getListOfUsersFromCreateConversationDto(createConversationDto);
+        if(!users.contains(currentUser)) users.add(currentUser);
+
         Conversation conversation = new Conversation();
         conversation.setConversationName(createConversationDto.getName());
 

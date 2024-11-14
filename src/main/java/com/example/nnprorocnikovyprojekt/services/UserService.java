@@ -180,6 +180,7 @@ public class UserService implements UserDetailsService {
         User contact = getUserByUsername(addContactDto.getUsername());
 
         if(contact == null) throw new RuntimeException("Contact is null");
+        if(user.getContacts().contains(contact)) throw new RuntimeException("User has already added this contact.");
 
         user.getContacts().add(contact);
         saveUser(user);
@@ -217,28 +218,42 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    private ContactDto userToContactDto(User user, User contact) {
+        String publicKeyString = contact.getActivePublicKey().isPresent()? contact.getActivePublicKey().get().getKeyValue() : null;
+        try {
+            PublicKeyDto publicKeyDto;
+            if(publicKeyString == null) {
+                publicKeyDto = null;
+            } else {
+                publicKeyDto = objectMapper.readValue(publicKeyString, PublicKeyDto.class);
+            }
+            return new ContactDto(contact.getUsername(), contact.getEmail(), publicKeyDto, user.getContacts().contains(contact));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not parse key");
+        }
+    }
+
     public UserDto getUserData() {
         User user = getUserFromContext();
         return userToUserDto(user);
     }
 
-    public UserPageResponseDto searchUsers(SearchUserDtoRequest searchUserDtoRequest) {
+    public ContactPageResponseDto searchUsers(SearchUserDtoRequest searchUserDtoRequest) {
         User user = getUserFromContext();
         Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "userId");
         Page<User> usersPage = userRepository.findUsersByUsernameStartingWithAndUsernameNot(searchUserDtoRequest.getUsername(), user.getUsername(), pageInfo);
-        return usersToUserPageResponseDto(usersPage);
+        return usersToUserPageResponseDto(usersPage, user);
     }
 
-    private UserPageResponseDto usersToUserPageResponseDto(Page<User> page){
+    private ContactPageResponseDto usersToUserPageResponseDto(Page<User> page, User user){
         if(page == null) return null;
-        List<UserDto> userDtos = page.getContent().stream()
-                .map(this::userToUserDto)
-                .collect(Collectors.toList());
+        List<ContactDto> contactDtos = page.getContent().stream()
+                .map(contact -> userToContactDto(user, contact)).toList();
 
-        UserPageResponseDto userPageResponseDto = new UserPageResponseDto();
-        userPageResponseDto.setItemList(userDtos);
-        userPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(page.getSize(), page.getSize(), page.getTotalElements()));
-        return userPageResponseDto;
+        ContactPageResponseDto contactPageResponseDto = new ContactPageResponseDto();
+        contactPageResponseDto.setItemList(contactDtos);
+        contactPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(page.getSize(), page.getSize(), page.getTotalElements()));
+        return contactPageResponseDto;
     }
 
     //TODO zkopirovane -> bude vubec potreba?
