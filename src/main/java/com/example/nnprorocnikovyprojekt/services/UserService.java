@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -62,10 +63,10 @@ public class UserService implements UserDetailsService {
     private JwtService jwtService;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private EmailService emailService;
 
     @Autowired
-    private EmailService emailService;
+    private ApplicationContext applicationContext;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -319,7 +320,7 @@ public class UserService implements UserDetailsService {
             throw new RuntimeException("Captcha is not valid");
         }
 
-        Authentication authentication = authenticationManager.authenticate(
+        Authentication authentication = applicationContext.getBean(AuthenticationManager.class).authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
         );
 
