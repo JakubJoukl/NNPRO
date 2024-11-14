@@ -74,7 +74,7 @@ public class ConversationService {
         List<ConversationUser> subscriptions = conversation.getActiveConversationUsers()
                 .stream()
                 .filter(conversationUser -> !conversationUser.getUser().getUsername().equals(user.getUsername()))
-                .toList();
+                .collect(Collectors.toList());
         subscriptions.forEach(subscription -> simpMessagingTemplate.convertAndSendToUser(subscription.getUser().getUsername(), "/topic/" + conversation.getConversationId(), messageDto.getMessage()));
     }
 
@@ -162,7 +162,7 @@ public class ConversationService {
     private List<User> getListOfUsersFromCreateConversationDto(CreateConversationDto createConversationDto) {
         List<User> users = createConversationDto.getUsers()
                 .stream().map(username -> userService.getUserByUsername(username))
-                .toList();
+                .collect(Collectors.toList());
         return users;
     }
 
@@ -176,7 +176,7 @@ public class ConversationService {
 
         List<ConversationUser> conversationUsers = users.stream()
                 .map(user -> new ConversationUser(user, conversation))
-                .toList();
+                .collect(Collectors.toList());
 
         conversation.getConversationUsers().addAll(conversationUsers);
         Conversation returnedConversation = conversationRepository.save(conversation);

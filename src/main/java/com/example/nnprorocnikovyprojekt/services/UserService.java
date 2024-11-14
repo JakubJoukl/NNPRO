@@ -288,7 +288,7 @@ public class UserService implements UserDetailsService {
     private ContactPageResponseDto usersToUserPageResponseDto(Page<User> page, User user){
         if(page == null) return null;
         List<ContactDto> contactDtos = page.getContent().stream()
-                .map(contact -> userToContactDto(user, contact)).toList();
+                .map(contact -> userToContactDto(user, contact)).collect(Collectors.toList());
 
         ContactPageResponseDto contactPageResponseDto = new ContactPageResponseDto();
         contactPageResponseDto.setItemList(contactDtos);
