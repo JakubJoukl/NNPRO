@@ -51,7 +51,7 @@ public class ConversationService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public ObjectMapper objectMapper;
+    public ObjectMapper objectMapper = new ObjectMapper();
 
     public Conversation getConversationById(Integer conversationId){
         return conversationRepository.getConversationByConversationId(conversationId).orElseThrow(() -> new RuntimeException("Conversation not found"));

@@ -1,7 +1,7 @@
 package com.example.nnprorocnikovyprojekt.dtos.pageinfo;
 
 public class PageInfoRequestWrapper {
-    private PageInfoDtoRequest pageInfo;
+    private PageInfoDtoRequest pageInfo = new PageInfoDtoRequest();
 
     public Integer getPageSize() {
         return pageInfo.getPageSize();

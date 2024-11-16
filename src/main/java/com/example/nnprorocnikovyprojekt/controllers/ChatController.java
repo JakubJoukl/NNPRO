@@ -79,8 +79,8 @@ public class ChatController {
     @PostMapping("/createConversation")
     public ResponseEntity<?> createConversation(@RequestBody CreateConversationDto createConversationDto){
         try{
-            conversationService.createConversation(createConversationDto);
-            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Conversation created"));
+            ConversationNameDto conversationNameDto = conversationService.createConversation(createConversationDto);
+            return ResponseEntity.status(HttpStatus.OK).body(conversationNameDto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to create the conversation"));
         }
