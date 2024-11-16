@@ -196,6 +196,7 @@ public class ConversationService {
     }
 
     public void removeUserFromConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) {
+        //TODO nebo pouzijeme boolean s neaktivnimi usery?
         Conversation conversation = getConversationById(addRemoveUserToConversationDto.getConversationId());
         int sizeBeforeRemove = conversation.getConversationUsers().size();
         conversation.getConversationUsers().removeIf(conversationUser -> conversationUser.getUser().getUsername().equals(addRemoveUserToConversationDto.getUsername()));
