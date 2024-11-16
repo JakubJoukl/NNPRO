@@ -57,9 +57,9 @@ public class ChatController {
     }
 
     @DeleteMapping("/leaveConversation")
-    public ResponseEntity<?> removeUserFromConversation(@RequestBody AddRemoveUserToConversationDto addRemoveUserToConversationDto){
+    public ResponseEntity<?> removeUserFromConversation(@RequestBody LeaveConversationDto leaveConversationDto){
         try {
-            conversationService.removeUserFromConversation(addRemoveUserToConversationDto);
+            conversationService.removeUserFromConversation(leaveConversationDto);
             return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User left the conversation"));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to remove user from the conversation"));

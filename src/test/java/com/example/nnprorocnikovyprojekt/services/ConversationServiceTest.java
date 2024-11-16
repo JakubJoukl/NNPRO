@@ -1,14 +1,12 @@
 package com.example.nnprorocnikovyprojekt.services;
 
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
-import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.PublicKeyDto;
 import com.example.nnprorocnikovyprojekt.entity.*;
 import com.example.nnprorocnikovyprojekt.repositories.ConversationRepository;
 import com.example.nnprorocnikovyprojekt.repositories.ConversationUserRepository;
 import com.example.nnprorocnikovyprojekt.repositories.MessageRepository;
-import com.example.nnprorocnikovyprojekt.repositories.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -16,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -67,13 +64,12 @@ class ConversationServiceTest {
 
     @Test
     void addUserToConversation() throws JsonProcessingException {
-        AddRemoveUserToConversationDto addRemoveUserToConversationDto = new AddRemoveUserToConversationDto();
-
         Optional<Conversation> conversationOptional = getTestConversation();
-
         User user = getTestUser();
-
-        addRemoveUserToConversationDto.setUsername(user.getUsername());
+        AddRemoveUserToConversationDto addRemoveUserToConversationDto = new AddRemoveUserToConversationDto();
+        CipheredSymmetricKeysDto cipheredSymmetricKeysDto = new CipheredSymmetricKeysDto();
+        cipheredSymmetricKeysDto.setUsername(user.getUsername());
+        addRemoveUserToConversationDto.setUser(cipheredSymmetricKeysDto);
         addRemoveUserToConversationDto.setConversationId(conversationOptional.get().getConversationId());
 
         when(conversationRepository.getConversationByConversationId(1)).thenReturn(conversationOptional);
@@ -116,7 +112,7 @@ class ConversationServiceTest {
         Optional<Conversation> conversationOptional = getTestConversation();
         Conversation conversation = conversationOptional.get();
         User user = getTestUser();
-        ConversationUser conversationUser = new ConversationUser(user, conversation, "x");
+        ConversationUser conversationUser = new ConversationUser(user, conversation, "x", null);
         conversation.getConversationUsers().add(conversationUser);
 
         GetConversationMessagesDto getConversationMessagesDto = new GetConversationMessagesDto();
@@ -158,7 +154,7 @@ class ConversationServiceTest {
         User bob = new User(user2.getUsername(), "x", "x");
         bob.setUserId(2);
 
-        createConversationDto.setUsers(users);
+        createConversationDto.setCipheredSymmetricKeysDtos(users);
 
         when(conversationRepository.save(any(Conversation.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(userService.getUserByUsername(user1.getUsername())).thenReturn(alice);
@@ -172,16 +168,16 @@ class ConversationServiceTest {
     void removeUserFromConversation() {
         User user = getTestUser();
         Optional<Conversation> conversation = getTestConversation();
-        ConversationUser conversationUser = new ConversationUser(user, conversation.get(), "klic");
+        ConversationUser conversationUser = new ConversationUser(user, conversation.get(), "klic", null);
         conversation.get().getConversationUsers().add(conversationUser);
 
-        AddRemoveUserToConversationDto addRemoveUserToConversationDto = new AddRemoveUserToConversationDto();
-        addRemoveUserToConversationDto.setUsername(user.getUsername());
-        addRemoveUserToConversationDto.setConversationId(conversation.get().getConversationId());
+        LeaveConversationDto leaveConversationDto = new LeaveConversationDto();
+        leaveConversationDto.setUsername(user.getUsername());
+        leaveConversationDto.setConversationId(conversation.get().getConversationId());
 
         when(conversationRepository.getConversationByConversationId(conversation.get().getConversationId())).thenReturn(conversation);
 
-        conversationService.removeUserFromConversation(addRemoveUserToConversationDto);
+        conversationService.removeUserFromConversation(leaveConversationDto);
     }
 
     private User getTestUser() {

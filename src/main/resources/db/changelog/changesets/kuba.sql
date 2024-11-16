@@ -81,3 +81,12 @@ ALTER TABLE public_key DROP COLUMN `key`;
 
 -- changeset Kuba:1731766141949-1
 ALTER TABLE conversation_user ADD cyphered_symmetric_key VARCHAR(255) NULL;
+
+-- changeset Kuba:1731779873272-1
+ALTER TABLE conversation_user ADD ciphering_public_key VARCHAR(4000) NULL;
+
+-- changeset Kuba:1731779873272-2
+ALTER TABLE conversation_user ADD encrypted_symmetric_key VARCHAR(255) NULL;
+
+-- changeset Kuba:1731779873272-3
+ALTER TABLE conversation_user DROP COLUMN cyphered_symmetric_key;

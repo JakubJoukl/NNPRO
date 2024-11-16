@@ -24,7 +24,10 @@ public class ConversationUser {
 
     //budeme rozsifrovavat privatnim klicem, je zasifrovana verejnym klicem
     @Column
-    private String cypheredSymmetricKey;
+    private String encryptedSymmetricKey;
+
+    @Column(length = 4000)
+    private String cipheringPublicKey;
 
     @Column
     @NotNull
@@ -33,12 +36,13 @@ public class ConversationUser {
     public ConversationUser() {
     }
 
-    public ConversationUser(User user, Conversation conversation, String cypheredSymmetricKey) {
+    public ConversationUser(User user, Conversation conversation, String encryptedSymmetricKey, String cipheringPublicKey) {
         this.user = user;
         this.conversation = conversation;
         this.isActive = true;
         this.conversationUserId = new ConversationUserId(conversation.getConversationId(), user.getUserId());
-        this.cypheredSymmetricKey = cypheredSymmetricKey;
+        this.encryptedSymmetricKey = encryptedSymmetricKey;
+        this.cipheringPublicKey = cipheringPublicKey;
     }
 
     public ConversationUserId getConversationUserId() {
@@ -73,12 +77,20 @@ public class ConversationUser {
         isActive = active;
     }
 
-    public String getCypheredSymmetricKey() {
-        return cypheredSymmetricKey;
+    public String getEncryptedSymmetricKey() {
+        return encryptedSymmetricKey;
     }
 
-    public void setCypheredSymmetricKey(String cypheredSymmetricKey) {
-        this.cypheredSymmetricKey = cypheredSymmetricKey;
+    public void setEncryptedSymmetricKey(String cypheredSymmetricKey) {
+        this.encryptedSymmetricKey = cypheredSymmetricKey;
+    }
+
+    public String getCipheringPublicKey() {
+        return cipheringPublicKey;
+    }
+
+    public void setCipheringPublicKey(String cipheringPublicKey) {
+        this.cipheringPublicKey = cipheringPublicKey;
     }
 }
 
