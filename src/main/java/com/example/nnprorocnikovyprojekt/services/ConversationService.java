@@ -189,7 +189,7 @@ public class ConversationService {
     }
 
     private List<User> getListOfUsersFromCreateConversationDto(CreateConversationDto createConversationDto) {
-        List<User> users = createConversationDto.getCipheredSymmetricKeysDtos()
+        List<User> users = createConversationDto.getUsers()
                 .stream().map(cipheredSymmetricKeysDto ->
                         userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername())
                 )
@@ -198,7 +198,7 @@ public class ConversationService {
     }
 
     private List<ConversationUser> getConversationUsersFromDto(CreateConversationDto createConversationDto, Conversation updatedConversation) {
-        List<ConversationUser> conversationUsers = createConversationDto.getCipheredSymmetricKeysDtos().stream()
+        List<ConversationUser> conversationUsers = createConversationDto.getUsers().stream()
                 .map(cipheredSymmetricKeysDto -> getConversationUserFromCipheredSymmetricKeyDto(updatedConversation, cipheredSymmetricKeysDto)).collect(Collectors.toList());
         return conversationUsers;
     }
@@ -206,11 +206,11 @@ public class ConversationService {
     private ConversationUser getConversationUserFromCipheredSymmetricKeyDto(Conversation updatedConversation, CipheredSymmetricKeysDto cipheredSymmetricKeysDto) {
         String publicKeyDtoAsString = null;
         try {
-            publicKeyDtoAsString = objectMapper.writeValueAsString(cipheredSymmetricKeysDto.getPublicKeyDto());
+            publicKeyDtoAsString = objectMapper.writeValueAsString(cipheredSymmetricKeysDto.getCipheringPublicKey());
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to parse public key to string");
         }
         return new ConversationUser(userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()),
-                updatedConversation, cipheredSymmetricKeysDto.getCipheredSymmetricKey(), publicKeyDtoAsString);
+                updatedConversation, cipheredSymmetricKeysDto.getEncryptedSymmetricKey(), publicKeyDtoAsString);
     }
 }

@@ -154,7 +154,7 @@ class ConversationServiceTest {
         User bob = new User(user2.getUsername(), "x", "x");
         bob.setUserId(2);
 
-        createConversationDto.setCipheredSymmetricKeysDtos(users);
+        createConversationDto.setUsers(users);
 
         when(conversationRepository.save(any(Conversation.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(userService.getUserByUsername(user1.getUsername())).thenReturn(alice);

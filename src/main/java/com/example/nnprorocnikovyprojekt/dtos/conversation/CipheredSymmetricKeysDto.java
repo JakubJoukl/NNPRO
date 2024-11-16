@@ -7,11 +7,11 @@ import java.util.HashMap;
 public class CipheredSymmetricKeysDto {
     private String username;
 
-    private String cipheredSymmetricKey;
+    private String encryptedSymmetricKey;
 
     private HashMap<String, Integer> iv = new HashMap<>();
 
-    private PublicKeyDto publicKeyDto;
+    private PublicKeyDto cipheringPublicKey;
 
     public CipheredSymmetricKeysDto() {
 
@@ -20,7 +20,7 @@ public class CipheredSymmetricKeysDto {
     //TODO pro testy -> odebrat?
     public CipheredSymmetricKeysDto(String username, String cipheredSymmetricKey) {
         this.username = username;
-        this.cipheredSymmetricKey = cipheredSymmetricKey;
+        this.encryptedSymmetricKey = cipheredSymmetricKey;
     }
 
     public String getUsername() {
@@ -31,12 +31,12 @@ public class CipheredSymmetricKeysDto {
         this.username = username;
     }
 
-    public String getCipheredSymmetricKey() {
-        return cipheredSymmetricKey;
+    public String getEncryptedSymmetricKey() {
+        return encryptedSymmetricKey;
     }
 
-    public void setCipheredSymmetricKey(String cipheredSymmetricKey) {
-        this.cipheredSymmetricKey = cipheredSymmetricKey;
+    public void setEncryptedSymmetricKey(String encryptedSymmetricKey) {
+        this.encryptedSymmetricKey = encryptedSymmetricKey;
     }
 
     public HashMap<String, Integer> getIv() {
@@ -47,11 +47,11 @@ public class CipheredSymmetricKeysDto {
         this.iv = iv;
     }
 
-    public PublicKeyDto getPublicKeyDto() {
-        return publicKeyDto;
+    public PublicKeyDto getCipheringPublicKey() {
+        return cipheringPublicKey;
     }
 
-    public void setPublicKeyDto(PublicKeyDto publicKeyDto) {
-        this.publicKeyDto = publicKeyDto;
+    public void setCipheringPublicKey(PublicKeyDto cipheringPublicKey) {
+        this.cipheringPublicKey = cipheringPublicKey;
     }
 }
