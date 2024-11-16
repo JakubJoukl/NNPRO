@@ -78,3 +78,6 @@ ALTER TABLE public_key ADD key_value VARCHAR(255) NOT NULL;
 
 -- changeset Kuba:1731351661524-2
 ALTER TABLE public_key DROP COLUMN `key`;
+
+-- changeset Kuba:1731766141949-1
+ALTER TABLE conversation_user ADD cyphered_symmetric_key VARCHAR(255) NULL;

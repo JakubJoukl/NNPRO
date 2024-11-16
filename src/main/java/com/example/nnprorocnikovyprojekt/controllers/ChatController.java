@@ -3,10 +3,7 @@ package com.example.nnprorocnikovyprojekt.controllers;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
-import com.example.nnprorocnikovyprojekt.entity.Conversation;
-import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.services.ConversationService;
-import com.example.nnprorocnikovyprojekt.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,8 +69,8 @@ public class ChatController {
     @PostMapping("/getConversationMessages")
     public ResponseEntity<?> getConversationMessages(@RequestBody GetConversationMessagesDto getConversationMessagesDto){
         try {
-            List<MessageDto> messageDtos = conversationService.getConversationMessages(getConversationMessagesDto);
-            return ResponseEntity.status(HttpStatus.OK).body(messageDtos);
+            GetConversationMessagesDtoResponse conversationMessagesDtoResponse = conversationService.getConversationMessagesDtoResponse(getConversationMessagesDto);
+            return ResponseEntity.status(HttpStatus.OK).body(conversationMessagesDtoResponse);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get conversations"));
         }

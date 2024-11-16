@@ -60,4 +60,10 @@ public class Conversation {
     public void setMessages(List<Message> messages) {
         this.messages = messages;
     }
+
+    public ConversationUser getConversationUserByUsername(String username) {
+        return conversationUsers.stream()
+                .filter(conversationUser -> username.equals(conversationUser.getUser().getUsername()))
+                .findFirst().orElse(null);
+    }
 }

@@ -1,7 +1,6 @@
 package com.example.nnprorocnikovyprojekt.services;
 
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
-import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.PublicKeyDto;
@@ -20,8 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,7 +86,7 @@ public class ConversationService {
             throw new RuntimeException("User is already a member of this conversation");
         }
 
-        ConversationUser conversationUser = new ConversationUser(user, conversation);
+        ConversationUser conversationUser = new ConversationUser(user, conversation, addRemoveUserToConversationDto.getCipheredSymmetricKey());
         saveConversationUser(conversationUser);
         if(user.getActivePublicKey().orElse(null) == null) return new AddUserToConversationResponse();
         else return new AddUserToConversationResponse(objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class));
@@ -134,15 +131,23 @@ public class ConversationService {
                 .collect(Collectors.toList());
     }
 
-    public List<MessageDto> getConversationMessages(GetConversationMessagesDto getConversationMessagesDto) {
+    public GetConversationMessagesDtoResponse getConversationMessagesDtoResponse(GetConversationMessagesDto getConversationMessagesDto) {
+        User user = userService.getUserFromContext();
         Conversation conversation = getConversationById(getConversationMessagesDto.getConversationId());
         LocalDateTime dateFrom = getConversationMessagesDto.getFrom();
         LocalDateTime dateTo = getConversationMessagesDto.getTo();
         if(dateFrom == null) dateFrom = LocalDateTime.MIN;
         if(dateTo == null) dateTo = LocalDateTime.MAX;
         if(conversation == null) throw new RuntimeException("Conversation is null");
+
+        ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
+        //TODO jak budeme resit ty sifrovane zpravy?
         List<Message> messages = messageRepository.getMessageByConversationAndDateSendIsBetween(conversation, dateFrom, dateTo);
-        return convertMessagesToMessageDtos(messages);
+
+        GetConversationMessagesDtoResponse getConversationMessagesDtoResponse = new GetConversationMessagesDtoResponse();
+        getConversationMessagesDtoResponse.setCipheredSymmetricKey(conversationUser.getCypheredSymmetricKey());
+        getConversationMessagesDtoResponse.setMessages(convertMessagesToMessageDtos(messages));
+        return getConversationMessagesDtoResponse;
     }
 
     private List<MessageDto> convertMessagesToMessageDtos(List<Message> messages){
@@ -161,28 +166,33 @@ public class ConversationService {
 
     private List<User> getListOfUsersFromCreateConversationDto(CreateConversationDto createConversationDto) {
         List<User> users = createConversationDto.getUsers()
-                .stream().map(username -> userService.getUserByUsername(username))
+                .stream().map(cipheredSymmetricKeysDto ->
+                        userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername())
+                )
                 .collect(Collectors.toList());
         return users;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public ConversationNameDto createConversation(CreateConversationDto createConversationDto) {
-        User currentUser = userService.getUserFromContext();
-        List<User> users = getListOfUsersFromCreateConversationDto(createConversationDto);
-        if(!users.contains(currentUser)) users.add(currentUser);
-
         Conversation conversation = new Conversation();
         conversation.setConversationName(createConversationDto.getName());
         Conversation updatedConversation = conversationRepository.save(conversation);
 
-        List<ConversationUser> conversationUsers = users.stream()
-                .map(user -> new ConversationUser(user, updatedConversation))
-                .collect(Collectors.toList());
+        List<ConversationUser> conversationUsers = getConversationUsersFromDto(createConversationDto, updatedConversation);
 
         updatedConversation.getConversationUsers().addAll(conversationUsers);
         Conversation returnedConversation = conversationRepository.save(updatedConversation);
         return convertConversationToConversationNameDto(returnedConversation);
+    }
+
+    private List<ConversationUser> getConversationUsersFromDto(CreateConversationDto createConversationDto, Conversation updatedConversation) {
+        List<ConversationUser> conversationUsers = createConversationDto.getUsers().stream()
+                .map(cipheredSymmetricKeysDto ->
+                        new ConversationUser(userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()),
+                                updatedConversation, cipheredSymmetricKeysDto.getCipheredSymmetricKey())
+                ).collect(Collectors.toList());
+        return conversationUsers;
     }
 
     public void removeUserFromConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) {

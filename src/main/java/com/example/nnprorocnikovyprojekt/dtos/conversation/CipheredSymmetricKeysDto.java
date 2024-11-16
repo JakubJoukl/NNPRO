@@ -1,18 +1,17 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
-public class AddRemoveUserToConversationDto {
-    private Integer conversationId;
-
+public class CipheredSymmetricKeysDto {
     private String username;
 
     private String cipheredSymmetricKey;
 
-    public Integer getConversationId() {
-        return conversationId;
+    public CipheredSymmetricKeysDto() {
+
     }
 
-    public void setConversationId(Integer conversationId) {
-        this.conversationId = conversationId;
+    public CipheredSymmetricKeysDto(String username, String cipheredSymmetricKey) {
+        this.username = username;
+        this.cipheredSymmetricKey = cipheredSymmetricKey;
     }
 
     public String getUsername() {

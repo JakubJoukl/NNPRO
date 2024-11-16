@@ -22,6 +22,10 @@ public class ConversationUser {
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 
+    //budeme rozsifrovavat privatnim klicem, je zasifrovana verejnym klicem
+    @Column
+    private String cypheredSymmetricKey;
+
     @Column
     @NotNull
     private boolean isActive;
@@ -29,11 +33,12 @@ public class ConversationUser {
     public ConversationUser() {
     }
 
-    public ConversationUser(User user, Conversation conversation) {
+    public ConversationUser(User user, Conversation conversation, String cypheredSymmetricKey) {
         this.user = user;
         this.conversation = conversation;
         this.isActive = true;
         this.conversationUserId = new ConversationUserId(conversation.getConversationId(), user.getUserId());
+        this.cypheredSymmetricKey = cypheredSymmetricKey;
     }
 
     public ConversationUserId getConversationUserId() {
@@ -66,6 +71,14 @@ public class ConversationUser {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public String getCypheredSymmetricKey() {
+        return cypheredSymmetricKey;
+    }
+
+    public void setCypheredSymmetricKey(String cypheredSymmetricKey) {
+        this.cypheredSymmetricKey = cypheredSymmetricKey;
     }
 }
 

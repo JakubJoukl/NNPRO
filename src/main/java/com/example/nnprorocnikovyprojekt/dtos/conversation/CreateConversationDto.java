@@ -6,7 +6,7 @@ import java.util.List;
 public class CreateConversationDto {
     private String name;
 
-    private List<String> users = new ArrayList<>();
+    private List<CipheredSymmetricKeysDto> users = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -16,11 +16,11 @@ public class CreateConversationDto {
         this.name = name;
     }
 
-    public List<String> getUsers() {
+    public List<CipheredSymmetricKeysDto> getUsers() {
         return users;
     }
 
-    public void setUsers(List<String> users) {
+    public void setUsers(List<CipheredSymmetricKeysDto> users) {
         this.users = users;
     }
 }
