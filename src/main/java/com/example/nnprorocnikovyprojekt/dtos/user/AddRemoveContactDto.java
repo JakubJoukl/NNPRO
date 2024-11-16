@@ -1,6 +1,6 @@
 package com.example.nnprorocnikovyprojekt.dtos.user;
 
-public class AddContactDto {
+public class AddRemoveContactDto {
     private String username;
 
     public String getUsername() {

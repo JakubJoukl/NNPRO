@@ -86,19 +86,29 @@ public class UserController {
     }
 
     @PostMapping("/addContact")
-    public ResponseEntity<?> addContact(@RequestBody AddContactDto addContactDto) {
+    public ResponseEntity<?> addContact(@RequestBody AddRemoveContactDto addRemoveContactDto) {
         try {
-            userService.addContact(addContactDto);
+            userService.addContact(addRemoveContactDto);
             return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact added"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to add contact"));
         }
     }
 
-    @PostMapping("/listContacts")
-    public ResponseEntity<?> listContacts(@RequestBody PageInfoRequestWrapper pageInfoRequestWrapper) {
+    @PostMapping("/removeContact")
+    public ResponseEntity<?> removeContact(@RequestBody AddRemoveContactDto addRemoveContactDto) {
         try {
-            UserPageResponseDto userPageResponseDto = userService.listContacts(pageInfoRequestWrapper);
+            userService.removeContact(addRemoveContactDto);
+            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact removed"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to remove contact"));
+        }
+    }
+
+    @PostMapping("/listContacts")
+    public ResponseEntity<?> listContacts(@RequestBody SearchUserDtoRequest searchUserDtoRequest) {
+        try {
+            UserPageResponseDto userPageResponseDto = userService.listContacts(searchUserDtoRequest);
             return ResponseEntity.status(HttpStatus.OK).body(userPageResponseDto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to add contact"));

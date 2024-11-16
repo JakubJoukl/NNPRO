@@ -2,7 +2,7 @@ package com.example.nnprorocnikovyprojekt.services;
 
 
 import com.example.nnprorocnikovyprojekt.Utility.Utils;
-import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
@@ -22,8 +22,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -216,9 +214,9 @@ public class UserService implements UserDetailsService {
         return userToUserDto(user);
     }
 
-    public void addContact(AddContactDto addContactDto) {
+    public void addContact(AddRemoveContactDto addRemoveContactDto) {
         User user = getUserFromContext();
-        User contact = getUserByUsername(addContactDto.getUsername());
+        User contact = getUserByUsername(addRemoveContactDto.getUsername());
 
         if(contact == null) throw new RuntimeException("Contact is null");
         if(user.getContacts().contains(contact)) throw new RuntimeException("User has already added this contact.");
@@ -227,20 +225,23 @@ public class UserService implements UserDetailsService {
         saveUser(user);
     }
 
-    public UserPageResponseDto listContacts(PageInfoRequestWrapper pageInfoRequestWrapper) {
+    public UserPageResponseDto listContacts(SearchUserDtoRequest searchUserDtoRequest) {
         User user = getUserFromContext();
-        List<User> contacts = Utils.getPage(user.getContacts(), pageInfoRequestWrapper.getPageIndex(), pageInfoRequestWrapper.getPageSize());
-        return contactsToContactsPageResponseDtos(contacts, pageInfoRequestWrapper, user.getContacts().size());
+        PageInfoDtoRequest pageInfo = searchUserDtoRequest.getPageInfo();
+        List<User> contactsFiltered = user.getContacts().stream()
+                .filter(contact -> contact.getUsername().startsWith(searchUserDtoRequest.getUsername())).collect(Collectors.toList());
+        List<User> contactsFilteredPaged = Utils.getPage(contactsFiltered, pageInfo.getPageIndex(), pageInfo.getPageSize());
+        return contactsToContactsPageResponseDtos(contactsFilteredPaged, pageInfo, user.getContacts().size());
     }
 
-    private UserPageResponseDto contactsToContactsPageResponseDtos(List<User> contacts, PageInfoRequestWrapper pageInfoRequestWrapper, Integer total){
+    private UserPageResponseDto contactsToContactsPageResponseDtos(List<User> contacts, PageInfoDtoRequest pageInfo, Integer total){
         List<UserDto> userDtos = contacts.stream()
                 .map(this::userToUserDto)
                 .collect(Collectors.toList());
 
         UserPageResponseDto userPageResponseDto = new UserPageResponseDto();
         userPageResponseDto.setItemList(userDtos);
-        userPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(pageInfoRequestWrapper.getPageSize(), pageInfoRequestWrapper.getPageIndex(), (long)total));
+        userPageResponseDto.setPageInfoDto(new PageInfoDtoResponse(pageInfo.getPageSize(), pageInfo.getPageIndex(), (long)total));
         return userPageResponseDto;
     }
 
@@ -338,6 +339,16 @@ public class UserService implements UserDetailsService {
         } else {
             throw new RuntimeException("Failed to authenticate user");
         }
+    }
+
+    public void removeContact(AddRemoveContactDto addRemoveContactDto) {
+        User user = getUserFromContext();
+        User contact = userRepository.getUserByUsername(addRemoveContactDto.getUsername()).orElseThrow(() -> new RuntimeException("Contact does not exist"));
+        boolean removeSucceeded = user.getContacts().remove(contact);
+        if(!removeSucceeded) {
+            throw new RuntimeException("Failed to remove contact -> contact was not in list of user contacts");
+        }
+        saveUser(user);
     }
 
     //TODO zkopirovane -> bude vubec potreba?
