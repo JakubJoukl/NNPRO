@@ -11,10 +11,9 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
 
 @Controller("chat")
 public class ChatController {
@@ -71,6 +70,16 @@ public class ChatController {
         try {
             GetConversationMessagesDtoResponse conversationMessagesDtoResponse = conversationService.getConversationMessagesDtoResponse(getConversationMessagesDto);
             return ResponseEntity.status(HttpStatus.OK).body(conversationMessagesDtoResponse);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get messages"));
+        }
+    }
+
+    @GetMapping("/getConversation/{conversationId}")
+    public ResponseEntity<?> getConversation(@DestinationVariable Integer conversationId){
+        try {
+            GetConversationResponseDto getConversationResponseDto = conversationService.getConversation(conversationId);
+            return ResponseEntity.status(HttpStatus.OK).body(getConversationResponseDto);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get conversations"));
         }

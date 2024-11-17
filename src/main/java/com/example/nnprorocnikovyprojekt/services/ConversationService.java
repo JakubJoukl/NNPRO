@@ -24,7 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -151,6 +154,11 @@ public class ConversationService {
         }
     }
 
+    public GetConversationResponseDto getConversation(Integer conversationId) {
+        Conversation conversation = getConversationById(conversationId);
+        return convertConversationToGetConversationResponseDto(conversation);
+    }
+
     private ConversationPageResponseDto conversationsToConversationNameDtos(Page<Conversation> page){
         if(page == null) return null;
         List<ConversationNameDto> conversationDtos = page.getContent().stream()
@@ -188,13 +196,31 @@ public class ConversationService {
         return messageDto;
     }
 
-    private List<User> getListOfUsersFromCreateConversationDto(CreateConversationDto createConversationDto) {
-        List<User> users = createConversationDto.getUsers()
-                .stream().map(cipheredSymmetricKeysDto ->
-                        userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername())
-                )
-                .collect(Collectors.toList());
-        return users;
+    private GetConversationResponseDto convertConversationToGetConversationResponseDto(Conversation conversation) {
+        GetConversationResponseDto getConversationResponseDto = new GetConversationResponseDto();
+        getConversationResponseDto.setName(conversation.getConversationName());
+        getConversationResponseDto.setConversationId(conversation.getConversationId());
+        getConversationResponseDto.setUsers(getListOfUsersFromCreateConversationDto(conversation.getActiveConversationUsers()));
+        return getConversationResponseDto;
+    }
+
+    private List<CipheredSymmetricKeysDto> getListOfUsersFromCreateConversationDto(List<ConversationUser> conversationUsers) {
+        List<CipheredSymmetricKeysDto> cipheredSymmetricKeysDtos = conversationUsers.stream().map(this::convertConversationUserToCipheredSymmetricKeysDto).collect(Collectors.toList());
+        return cipheredSymmetricKeysDtos;
+    }
+
+    private CipheredSymmetricKeysDto convertConversationUserToCipheredSymmetricKeysDto(ConversationUser conversationUser) {
+        CipheredSymmetricKeysDto cipheredSymmetricKeysDto = new CipheredSymmetricKeysDto();
+        cipheredSymmetricKeysDto.setUsername(conversationUser.getUser().getUsername());
+        cipheredSymmetricKeysDto.setEncryptedSymmetricKey(conversationUser.getEncryptedSymmetricKey());
+        try {
+            HashMap<String, Integer> ivMap = (HashMap<String, Integer>)objectMapper.readValue(conversationUser.getInitiationVector(), Map.class);
+            cipheredSymmetricKeysDto.setIv(ivMap);
+            cipheredSymmetricKeysDto.setCipheringPublicKey(objectMapper.readValue(conversationUser.getCipheringPublicKey(), PublicKeyDto.class));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize key");
+        }
+        return cipheredSymmetricKeysDto;
     }
 
     private List<ConversationUser> getConversationUsersFromDto(CreateConversationDto createConversationDto, Conversation updatedConversation) {
@@ -205,12 +231,18 @@ public class ConversationService {
 
     private ConversationUser getConversationUserFromCipheredSymmetricKeyDto(Conversation updatedConversation, CipheredSymmetricKeysDto cipheredSymmetricKeysDto) {
         String publicKeyDtoAsString = null;
+        String initiationVectorAsString = null;
         try {
             publicKeyDtoAsString = objectMapper.writeValueAsString(cipheredSymmetricKeysDto.getCipheringPublicKey());
+            initiationVectorAsString = objectMapper.writeValueAsString(cipheredSymmetricKeysDto.getIv());
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to parse public key to string");
         }
-        return new ConversationUser(userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()),
-                updatedConversation, cipheredSymmetricKeysDto.getEncryptedSymmetricKey(), publicKeyDtoAsString);
+        return new ConversationUser(
+                userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()),
+                updatedConversation, cipheredSymmetricKeysDto.getEncryptedSymmetricKey(),
+                publicKeyDtoAsString,
+                initiationVectorAsString
+        );
     }
 }

@@ -26,6 +26,9 @@ public class ConversationUser {
     @Column
     private String encryptedSymmetricKey;
 
+    @Column(length = 400)
+    private String initiationVector;
+
     @Column(length = 4000)
     private String cipheringPublicKey;
 
@@ -36,13 +39,14 @@ public class ConversationUser {
     public ConversationUser() {
     }
 
-    public ConversationUser(User user, Conversation conversation, String encryptedSymmetricKey, String cipheringPublicKey) {
+    public ConversationUser(User user, Conversation conversation, String encryptedSymmetricKey, String cipheringPublicKey, String initiationVector) {
         this.user = user;
         this.conversation = conversation;
         this.isActive = true;
         this.conversationUserId = new ConversationUserId(conversation.getConversationId(), user.getUserId());
         this.encryptedSymmetricKey = encryptedSymmetricKey;
         this.cipheringPublicKey = cipheringPublicKey;
+        this.initiationVector = initiationVector;
     }
 
     public ConversationUserId getConversationUserId() {
@@ -91,6 +95,14 @@ public class ConversationUser {
 
     public void setCipheringPublicKey(String cipheringPublicKey) {
         this.cipheringPublicKey = cipheringPublicKey;
+    }
+
+    public String getInitiationVector() {
+        return initiationVector;
+    }
+
+    public void setInitiationVector(String initiationVector) {
+        this.initiationVector = initiationVector;
     }
 }
 

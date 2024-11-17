@@ -112,7 +112,7 @@ class ConversationServiceTest {
         Optional<Conversation> conversationOptional = getTestConversation();
         Conversation conversation = conversationOptional.get();
         User user = getTestUser();
-        ConversationUser conversationUser = new ConversationUser(user, conversation, "x", null);
+        ConversationUser conversationUser = new ConversationUser(user, conversation, "x", null, null);
         conversation.getConversationUsers().add(conversationUser);
 
         GetConversationMessagesDto getConversationMessagesDto = new GetConversationMessagesDto();
@@ -168,7 +168,7 @@ class ConversationServiceTest {
     void removeUserFromConversation() {
         User user = getTestUser();
         Optional<Conversation> conversation = getTestConversation();
-        ConversationUser conversationUser = new ConversationUser(user, conversation.get(), "klic", null);
+        ConversationUser conversationUser = new ConversationUser(user, conversation.get(), "klic", null, null);
         conversation.get().getConversationUsers().add(conversationUser);
 
         LeaveConversationDto leaveConversationDto = new LeaveConversationDto();

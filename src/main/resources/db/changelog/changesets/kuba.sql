@@ -90,3 +90,6 @@ ALTER TABLE conversation_user ADD encrypted_symmetric_key VARCHAR(255) NULL;
 
 -- changeset Kuba:1731779873272-3
 ALTER TABLE conversation_user DROP COLUMN cyphered_symmetric_key;
+
+-- changeset Kuba:1731854773482-1
+ALTER TABLE conversation_user ADD initiation_vector VARCHAR(400) NULL;
