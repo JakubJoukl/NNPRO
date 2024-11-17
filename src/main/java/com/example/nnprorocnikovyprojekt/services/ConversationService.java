@@ -63,12 +63,12 @@ public class ConversationService {
 
     //Neukladame zpravy, ktere nejsme schopni odeslat?
     @Transactional(rollbackFor = Exception.class)
-    public void sendMessageToAllSubscribersExceptUser(MessageDto messageDto, Integer conversationId) {
+    public void sendMessageToAllSubscribersExceptUser(MessageDto messageDto) {
         User user = userService.getUserFromContext();
 
         if(user == null) throw  new RuntimeException("User not found");
 
-        Conversation conversation = getConversationById(conversationId);
+        Conversation conversation = getConversationById(messageDto.getConversationId());
 
         Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo());
         messageService.saveMessage(message);

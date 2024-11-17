@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 public class MessageDto {
 
+    private Integer conversationId;
+
     private String sender;
 
     private String message;
@@ -18,6 +20,14 @@ public class MessageDto {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public Integer getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(Integer conversationId) {
+        this.conversationId = conversationId;
     }
 
     public String getSender() {
