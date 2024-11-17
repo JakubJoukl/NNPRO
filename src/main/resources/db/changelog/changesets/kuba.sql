@@ -93,3 +93,6 @@ ALTER TABLE conversation_user DROP COLUMN cyphered_symmetric_key;
 
 -- changeset Kuba:1731854773482-1
 ALTER TABLE conversation_user ADD initiation_vector VARCHAR(400) NULL;
+
+-- changeset Kuba:1731864337621-1
+ALTER TABLE message ADD valid_to datetime(6);

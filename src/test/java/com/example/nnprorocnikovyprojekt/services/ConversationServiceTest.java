@@ -127,10 +127,10 @@ class ConversationServiceTest {
         List<Message> messages = new ArrayList<>();
         String content = "q";
         String content2 = "qq";
-        messages.add(new Message(user, conversation, content));
-        messages.add(new Message(user, conversation, content2));
+        messages.add(new Message(user, conversation, content, null));
+        messages.add(new Message(user, conversation, content2, null));
 
-        when(messageRepository.getMessageByConversationAndDateSendIsBetween(conversation, from, to)).thenReturn(messages);
+        when(messageRepository.getMessageByConversationBetweenDatesValidTo(conversation, from, to, null, conversationUser)).thenReturn(messages);
         when(conversationRepository.getConversationByConversationId(conversation.getConversationId())).thenReturn(conversationOptional);
         when(userService.getUserFromContext()).thenReturn(user);
 

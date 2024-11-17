@@ -65,8 +65,8 @@ public class ChatController {
         }
     }
 
-    @PostMapping("/getConversationMessages")
-    public ResponseEntity<?> getConversationMessages(@RequestBody GetConversationMessagesDto getConversationMessagesDto){
+    @PostMapping("/listMessages")
+    public ResponseEntity<?> listMessages(@RequestBody GetConversationMessagesDto getConversationMessagesDto){
         try {
             GetConversationMessagesDtoResponse conversationMessagesDtoResponse = conversationService.getConversationMessagesDtoResponse(getConversationMessagesDto);
             return ResponseEntity.status(HttpStatus.OK).body(conversationMessagesDtoResponse);

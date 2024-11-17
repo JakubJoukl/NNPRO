@@ -14,6 +14,8 @@ public class MessageDto {
 
     private Integer conversationId;
 
+    private LocalDateTime validTo;
+
     public String getMessage() {
         return message;
     }
@@ -52,5 +54,13 @@ public class MessageDto {
 
     public void setDateSend(LocalDateTime dateSend) {
         this.dateSend = dateSend;
+    }
+
+    public LocalDateTime getValidTo() {
+        return validTo;
+    }
+
+    public void setValidTo(LocalDateTime validTo) {
+        this.validTo = validTo;
     }
 }

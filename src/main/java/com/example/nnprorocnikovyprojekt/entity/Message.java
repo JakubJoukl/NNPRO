@@ -24,6 +24,9 @@ public class Message {
     @NotNull
     private LocalDateTime dateSend;
 
+    @Column
+    private LocalDateTime validTo;
+
     @ManyToOne
     @JoinColumn(name="conversation_id", nullable = false)
     private Conversation conversation;
@@ -32,11 +35,12 @@ public class Message {
 
     }
 
-    public Message(User sender, Conversation conversation, String content) {
+    public Message(User sender, Conversation conversation, String content, LocalDateTime validTo) {
         this.sender = sender;
         this.conversation = conversation;
         this.content = content;
         this.dateSend = LocalDateTime.now();
+        this.validTo = validTo;
     }
 
     public Integer getMessageId() {
@@ -77,5 +81,13 @@ public class Message {
 
     public void setDateSend(LocalDateTime dateSend) {
         this.dateSend = dateSend;
+    }
+
+    public LocalDateTime getValidTo() {
+        return validTo;
+    }
+
+    public void setValidTo(LocalDateTime validTo) {
+        this.validTo = validTo;
     }
 }

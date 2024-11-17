@@ -69,7 +69,7 @@ public class ConversationService {
 
         Conversation conversation = getConversationById(conversationId);
 
-        Message message = new Message(user, conversation, messageDto.getMessage());
+        Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo());
         messageService.saveMessage(message);
         List<ConversationUser> subscriptions = conversation.getActiveConversationUsers()
                 .stream()
@@ -122,10 +122,10 @@ public class ConversationService {
 
         ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
         //TODO jak budeme resit ty sifrovane zpravy?
-        List<Message> messages = messageRepository.getMessageByConversationAndDateSendIsBetween(conversation, dateFrom, dateTo);
-
+        List<Message> messages = messageRepository.getMessageByConversationBetweenDatesValidTo(conversation, dateFrom, dateTo, LocalDateTime.now(), conversationUser);
         GetConversationMessagesDtoResponse getConversationMessagesDtoResponse = new GetConversationMessagesDtoResponse();
-        getConversationMessagesDtoResponse.setCipheredSymmetricKey(conversationUser.getEncryptedSymmetricKey());
+        //Todo je potreba?
+        //getConversationMessagesDtoResponse.setCipheredSymmetricKey(conversationUser.getEncryptedSymmetricKey());
         getConversationMessagesDtoResponse.setMessages(convertMessagesToMessageDtos(messages));
         return getConversationMessagesDtoResponse;
     }
@@ -193,6 +193,7 @@ public class ConversationService {
         messageDto.setSender(message.getSender().getUsername());
         messageDto.setConversationId(message.getConversation().getConversationId());
         messageDto.setDateSend(message.getDateSend());
+        messageDto.setValidTo(message.getValidTo());
         return messageDto;
     }
 
