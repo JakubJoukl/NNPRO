@@ -1,8 +1,11 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
+
 import java.time.LocalDateTime;
 
 public class GetConversationMessagesDto {
+    private PageInfoDtoRequest pageInfo;
     private LocalDateTime from;
     private LocalDateTime to;
     private Integer conversationId;
@@ -29,5 +32,13 @@ public class GetConversationMessagesDto {
 
     public void setConversationId(Integer conversationId) {
         this.conversationId = conversationId;
+    }
+
+    public PageInfoDtoRequest getPageInfo() {
+        return pageInfo;
+    }
+
+    public void setPageInfo(PageInfoDtoRequest pageInfo) {
+        this.pageInfo = pageInfo;
     }
 }

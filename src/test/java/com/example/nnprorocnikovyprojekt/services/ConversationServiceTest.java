@@ -15,9 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -124,13 +122,15 @@ class ConversationServiceTest {
         getConversationMessagesDto.setTo(to);
         getConversationMessagesDto.setConversationId(conversation.getConversationId());
 
+        Pageable pageInfo = PageRequest.of(0, 50).withSort(Sort.Direction.DESC, "messageId");
         List<Message> messages = new ArrayList<>();
         String content = "q";
         String content2 = "qq";
         messages.add(new Message(user, conversation, content, null));
         messages.add(new Message(user, conversation, content2, null));
+        Page<Message> pagedResponse = new PageImpl(messages);
 
-        when(messageRepository.getMessageByConversationBetweenDatesValidTo(conversation, from, to, null, conversationUser)).thenReturn(messages);
+        when(messageRepository.getMessageByConversationBetweenDatesValidTo(pageInfo, conversation, from, to, null, conversationUser)).thenReturn(pagedResponse);
         when(conversationRepository.getConversationByConversationId(conversation.getConversationId())).thenReturn(conversationOptional);
         when(userService.getUserFromContext()).thenReturn(user);
 

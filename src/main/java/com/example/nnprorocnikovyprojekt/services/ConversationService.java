@@ -1,6 +1,7 @@
 package com.example.nnprorocnikovyprojekt.services;
 
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.PublicKeyDto;
@@ -121,12 +122,13 @@ public class ConversationService {
         if(conversation == null) throw new RuntimeException("Conversation is null");
 
         ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
+        PageInfoDtoRequest pageInfoDtoRequest = getConversationMessagesDto.getPageInfo();
         //TODO jak budeme resit ty sifrovane zpravy?
-        List<Message> messages = messageRepository.getMessageByConversationBetweenDatesValidTo(conversation, dateFrom, dateTo, LocalDateTime.now(), conversationUser);
-        GetConversationMessagesDtoResponse getConversationMessagesDtoResponse = new GetConversationMessagesDtoResponse();
+        Pageable pageInfo = PageRequest.of(pageInfoDtoRequest.getPageIndex(), pageInfoDtoRequest.getPageSize()).withSort(Sort.Direction.DESC, "messageId");
+        Page<Message> messages = messageRepository.getMessageByConversationBetweenDatesValidTo(pageInfo, conversation, dateFrom, dateTo, LocalDateTime.now(), conversationUser);
         //Todo je potreba?
         //getConversationMessagesDtoResponse.setCipheredSymmetricKey(conversationUser.getEncryptedSymmetricKey());
-        getConversationMessagesDtoResponse.setMessages(convertMessagesToMessageDtos(messages));
+        GetConversationMessagesDtoResponse getConversationMessagesDtoResponse = mapGetConversationMessagesDtoResponse(messages);
         return getConversationMessagesDtoResponse;
     }
 
@@ -157,6 +159,17 @@ public class ConversationService {
     public GetConversationResponseDto getConversation(Integer conversationId) {
         Conversation conversation = getConversationById(conversationId);
         return convertConversationToGetConversationResponseDto(conversation);
+    }
+
+    private GetConversationMessagesDtoResponse mapGetConversationMessagesDtoResponse(Page<Message> messages) {
+        GetConversationMessagesDtoResponse getConversationMessagesDtoResponse = new GetConversationMessagesDtoResponse();
+        getConversationMessagesDtoResponse.setMessages(convertMessagesToMessageDtos(messages.getContent()));
+        PageInfoDtoResponse pageInfoDtoResponse = new PageInfoDtoResponse();
+        pageInfoDtoResponse.setPageIndex(messages.getNumber());
+        pageInfoDtoResponse.setPageSize(messages.getSize());
+        pageInfoDtoResponse.setTotal(messages.getTotalElements());
+        getConversationMessagesDtoResponse.setPageInfo(pageInfoDtoResponse);
+        return getConversationMessagesDtoResponse;
     }
 
     private ConversationPageResponseDto conversationsToConversationNameDtos(Page<Conversation> page){

@@ -20,7 +20,7 @@ public class ChatController {
 
     //https://medium.com/@poojithairosha/spring-boot-3-authenticate-websocket-connections-with-jwt-tokens-2b4ff60532b6
     //Asi chci destination variable a nepotrebuji hodnotu z Dto?
-    @MessageMapping("/{conversationId}")
+    @MessageMapping("/sendMessageToConversation/{conversationId}")
     public ResponseEntity<?> chat(MessageDto messageDto, @PathVariable Integer conversationId) {
         //TODO sout po otestovani funkcionalit smazat
         System.out.format("Message received: {%s}", messageDto.getMessage());
