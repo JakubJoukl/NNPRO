@@ -10,6 +10,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Integer> {
-    @Query("SELECT m FROM Message m WHERE m.conversation = :conversation and (:conversationUser in m.conversation.conversationUsers) and m.dateSend >= :from and m.dateSend <= :to and (:validTo is null or m.validTo < :validTo)")
+    @Query("    SELECT m \n" +
+            "    FROM Message m \n" +
+            "    WHERE m.conversation = :conversation \n" +
+            "      AND :conversationUser MEMBER OF m.conversation.conversationUsers\n" +
+            "      AND m.dateSend BETWEEN :from AND :to\n" +
+            "      AND (:validTo IS NULL OR m.validTo < :validTo)")
     List<Message> getMessageByConversationBetweenDatesValidTo(Conversation conversation, LocalDateTime from, LocalDateTime to, LocalDateTime validTo, ConversationUser conversationUser);
 }
