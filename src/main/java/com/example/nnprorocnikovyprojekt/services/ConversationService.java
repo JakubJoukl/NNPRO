@@ -24,6 +24,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,8 +64,8 @@ public class ConversationService {
 
     //Neukladame zpravy, ktere nejsme schopni odeslat?
     @Transactional(rollbackFor = Exception.class)
-    public void sendMessageToAllSubscribersExceptUser(MessageDto messageDto) {
-        User user = userService.getUserFromContext();
+    public void sendMessageToAllSubscribersExceptUser(Principal principal, MessageDto messageDto) {
+        User user = userService.getUserByUsername(principal.getName());
 
         if(user == null) throw  new RuntimeException("User not found");
 

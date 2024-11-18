@@ -12,6 +12,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @Controller("chat")
 public class ChatController {
 
@@ -21,11 +23,12 @@ public class ChatController {
     //https://medium.com/@poojithairosha/spring-boot-3-authenticate-websocket-connections-with-jwt-tokens-2b4ff60532b6
     //Asi chci destination variable a nepotrebuji hodnotu z Dto?
     @MessageMapping("/sendMessageToConversation")
-    public ResponseEntity<?> chat(MessageDto messageDto) {
+    public ResponseEntity<?> chat(Principal principal, MessageDto messageDto) {
+        System.out.println(principal);
         //TODO sout po otestovani funkcionalit smazat
         System.out.format("Message received: {%s}", messageDto.getMessage());
         try {
-            conversationService.sendMessageToAllSubscribersExceptUser(messageDto);
+            conversationService.sendMessageToAllSubscribersExceptUser(principal, messageDto);
             return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process the message"));
