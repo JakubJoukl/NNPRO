@@ -123,8 +123,9 @@ public class ConversationService {
 
         ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
         PageInfoDtoRequest pageInfoDtoRequest = getConversationMessagesDto.getPageInfo();
-        //TODO jak budeme resit ty sifrovane zpravy?
-        Pageable pageInfo = PageRequest.of(pageInfoDtoRequest.getPageIndex(), pageInfoDtoRequest.getPageSize()).withSort(Sort.Direction.DESC, "messageId");
+        Integer pageIndex = pageInfoDtoRequest == null? 0 : pageInfoDtoRequest.getPageIndex();
+        Integer pageSize = pageInfoDtoRequest == null? Integer.MAX_VALUE : pageInfoDtoRequest.getPageSize();
+        Pageable pageInfo = PageRequest.of(pageIndex, pageSize).withSort(Sort.Direction.DESC, "messageId");
         Page<Message> messages = messageRepository.getMessageByConversationBetweenDatesValidTo(pageInfo, conversation, dateFrom, dateTo, LocalDateTime.now(), conversationUser);
         //Todo je potreba?
         //getConversationMessagesDtoResponse.setCipheredSymmetricKey(conversationUser.getEncryptedSymmetricKey());
