@@ -33,8 +33,8 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/chat").withSockJS();
-        registry.addEndpoint("/chat");
+        registry.addEndpoint("/chat").setAllowedOrigins("localhost:5173").withSockJS();
+        registry.addEndpoint("/chat").setAllowedOrigins("localhost:5173");
     }
 
     @Override
@@ -69,7 +69,6 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 return message;
             }
-
         });
     }
 }
