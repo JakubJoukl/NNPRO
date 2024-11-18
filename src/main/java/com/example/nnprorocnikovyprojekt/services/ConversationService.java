@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,7 +164,7 @@ public class ConversationService {
 
     private GetConversationMessagesDtoResponse mapGetConversationMessagesDtoResponse(Page<Message> messages) {
         GetConversationMessagesDtoResponse getConversationMessagesDtoResponse = new GetConversationMessagesDtoResponse();
-        getConversationMessagesDtoResponse.setMessages(convertMessagesToMessageDtos(messages.getContent()));
+        getConversationMessagesDtoResponse.setItemList(convertMessagesToMessageDtos(messages.getContent()));
         PageInfoDtoResponse pageInfoDtoResponse = new PageInfoDtoResponse();
         pageInfoDtoResponse.setPageIndex(messages.getNumber());
         pageInfoDtoResponse.setPageSize(messages.getSize());
