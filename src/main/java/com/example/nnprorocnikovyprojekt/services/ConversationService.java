@@ -57,7 +57,7 @@ public class ConversationService {
 
     public ObjectMapper objectMapper = new ObjectMapper();
 
-    public Conversation getConversationById(Integer conversationId){
+    public Conversation getConversationById(Integer conversationId) {
         return conversationRepository.getConversationByConversationId(conversationId).orElseThrow(() -> new RuntimeException("Conversation not found"));
     }
 
@@ -66,38 +66,35 @@ public class ConversationService {
     public void sendMessageToAllSubscribersExceptUser(Principal principal, MessageDto messageDto) {
         User user = userService.getUserByUsername(principal.getName());
 
-        if(user == null) throw  new RuntimeException("User not found");
+        if (user == null) throw new RuntimeException("User not found");
 
         Conversation conversation = getConversationById(messageDto.getConversationId());
 
         Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo());
         messageService.saveMessage(message);
-        List<ConversationUser> subscriptions = conversation.getActiveConversationUsers()
-                .stream()
-                .filter(conversationUser -> !conversationUser.getUser().getUsername().equals(user.getUsername()))
-                .collect(Collectors.toList());
-        subscriptions.forEach(subscription -> simpMessagingTemplate.convertAndSendToUser(subscription.getUser().getUsername(), "/topic/" + conversation.getConversationId(), messageDto.getMessage()));
+        simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId().toString(), messageDto.getMessage());
     }
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
         User user = userService.getUserByUsername(addRemoveUserToConversationDto.getUser().getUsername());
-        if(user == null) throw new RuntimeException("User is null");
+        if (user == null) throw new RuntimeException("User is null");
 
         Conversation conversation = getConversationById(addRemoveUserToConversationDto.getConversationId());
-        if(conversation == null) throw new RuntimeException("Conversation is null");
+        if (conversation == null) throw new RuntimeException("Conversation is null");
 
-        if(conversation.getConversationUsers().stream().map(ConversationUser::getUser).anyMatch(user1 -> user1.equals(user))){
+        if (conversation.getConversationUsers().stream().map(ConversationUser::getUser).anyMatch(user1 -> user1.equals(user))) {
             throw new RuntimeException("User is already a member of this conversation");
         }
 
         ConversationUser conversationUser = getConversationUserFromCipheredSymmetricKeyDto(conversation, addRemoveUserToConversationDto.getUser());
         saveConversationUser(conversationUser);
-        if(user.getActivePublicKey().orElse(null) == null) return new AddUserToConversationResponse();
-        else return new AddUserToConversationResponse(objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class));
+        if (user.getActivePublicKey().orElse(null) == null) return new AddUserToConversationResponse();
+        else
+            return new AddUserToConversationResponse(objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class));
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ConversationUser saveConversationUser(ConversationUser conversationUser){
+    public ConversationUser saveConversationUser(ConversationUser conversationUser) {
         return conversationUserRepository.save(conversationUser);
     }
 
@@ -117,14 +114,14 @@ public class ConversationService {
         Conversation conversation = getConversationById(getConversationMessagesDto.getConversationId());
         LocalDateTime dateFrom = getConversationMessagesDto.getFrom();
         LocalDateTime dateTo = getConversationMessagesDto.getTo();
-        if(dateFrom == null) dateFrom = LocalDateTime.of(2000, 1,1,1,1);
-        if(dateTo == null) dateTo = LocalDateTime.MAX;
-        if(conversation == null) throw new RuntimeException("Conversation is null");
+        if (dateFrom == null) dateFrom = LocalDateTime.of(2000, 1, 1, 1, 1);
+        if (dateTo == null) dateTo = LocalDateTime.MAX;
+        if (conversation == null) throw new RuntimeException("Conversation is null");
 
         ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
         PageInfoDtoRequest pageInfoDtoRequest = getConversationMessagesDto.getPageInfo();
-        Integer pageIndex = pageInfoDtoRequest == null? 0 : pageInfoDtoRequest.getPageIndex();
-        Integer pageSize = pageInfoDtoRequest == null? Integer.MAX_VALUE : pageInfoDtoRequest.getPageSize();
+        Integer pageIndex = pageInfoDtoRequest == null ? 0 : pageInfoDtoRequest.getPageIndex();
+        Integer pageSize = pageInfoDtoRequest == null ? Integer.MAX_VALUE : pageInfoDtoRequest.getPageSize();
         Pageable pageInfo = PageRequest.of(pageIndex, pageSize).withSort(Sort.Direction.DESC, "messageId");
         Page<Message> messages = messageRepository.getMessageByConversationBetweenDatesValidTo(pageInfo, conversation, dateFrom, dateTo, LocalDateTime.now(), conversationUser);
         //Todo je potreba?
@@ -152,7 +149,7 @@ public class ConversationService {
         int sizeBeforeRemove = conversation.getConversationUsers().size();
         conversation.getConversationUsers().removeIf(conversationUser -> conversationUser.getUser().getUsername().equals(leaveConversationDto.getUsername()));
         saveConversation(conversation);
-        if(sizeBeforeRemove != conversation.getConversationUsers().size() + 1){
+        if (sizeBeforeRemove != conversation.getConversationUsers().size() + 1) {
             throw new RuntimeException("Exactly 1 element was supposed to be deleted");
         }
     }
@@ -173,11 +170,9 @@ public class ConversationService {
         return getConversationMessagesDtoResponse;
     }
 
-    private ConversationPageResponseDto conversationsToConversationNameDtos(Page<Conversation> page){
-        if(page == null) return null;
-        List<ConversationNameDto> conversationDtos = page.getContent().stream()
-                .map(this::convertConversationToConversationNameDto)
-                .collect(Collectors.toList());
+    private ConversationPageResponseDto conversationsToConversationNameDtos(Page<Conversation> page) {
+        if (page == null) return null;
+        List<ConversationNameDto> conversationDtos = page.getContent().stream().map(this::convertConversationToConversationNameDto).collect(Collectors.toList());
 
         ConversationPageResponseDto conversationPageResponseDto = new ConversationPageResponseDto();
         conversationPageResponseDto.setItemList(conversationDtos);
@@ -189,14 +184,12 @@ public class ConversationService {
         return new ConversationNameDto(conversation.getConversationId(), conversation.getConversationName());
     }
 
-    private List<Conversation> conversationNameDtosToConversations(List<ConversationNameDto> conversations){
-        if(conversations == null) return null;
-        return conversations.stream()
-                .map(user -> getConversationById(user.getId()))
-                .collect(Collectors.toList());
+    private List<Conversation> conversationNameDtosToConversations(List<ConversationNameDto> conversations) {
+        if (conversations == null) return null;
+        return conversations.stream().map(user -> getConversationById(user.getId())).collect(Collectors.toList());
     }
 
-    private List<MessageDto> convertMessagesToMessageDtos(List<Message> messages){
+    private List<MessageDto> convertMessagesToMessageDtos(List<Message> messages) {
         return messages.stream().map(this::convertMessageToMessageDto).collect(Collectors.toList());
     }
 
@@ -227,7 +220,7 @@ public class ConversationService {
         cipheredSymmetricKeysDto.setUsername(conversationUser.getUser().getUsername());
         cipheredSymmetricKeysDto.setEncryptedSymmetricKey(conversationUser.getEncryptedSymmetricKey());
         try {
-            HashMap<String, Integer> ivMap = (HashMap<String, Integer>)objectMapper.readValue(conversationUser.getInitiationVector(), Map.class);
+            HashMap<String, Integer> ivMap = (HashMap<String, Integer>) objectMapper.readValue(conversationUser.getInitiationVector(), Map.class);
             cipheredSymmetricKeysDto.setIv(ivMap);
             cipheredSymmetricKeysDto.setCipheringPublicKey(objectMapper.readValue(conversationUser.getCipheringPublicKey(), PublicKeyDto.class));
         } catch (Exception e) {
@@ -237,8 +230,7 @@ public class ConversationService {
     }
 
     private List<ConversationUser> getConversationUsersFromDto(CreateConversationDto createConversationDto, Conversation updatedConversation) {
-        List<ConversationUser> conversationUsers = createConversationDto.getUsers().stream()
-                .map(cipheredSymmetricKeysDto -> getConversationUserFromCipheredSymmetricKeyDto(updatedConversation, cipheredSymmetricKeysDto)).collect(Collectors.toList());
+        List<ConversationUser> conversationUsers = createConversationDto.getUsers().stream().map(cipheredSymmetricKeysDto -> getConversationUserFromCipheredSymmetricKeyDto(updatedConversation, cipheredSymmetricKeysDto)).collect(Collectors.toList());
         return conversationUsers;
     }
 
@@ -251,11 +243,6 @@ public class ConversationService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to parse public key to string");
         }
-        return new ConversationUser(
-                userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()),
-                updatedConversation, cipheredSymmetricKeysDto.getEncryptedSymmetricKey(),
-                publicKeyDtoAsString,
-                initiationVectorAsString
-        );
+        return new ConversationUser(userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()), updatedConversation, cipheredSymmetricKeysDto.getEncryptedSymmetricKey(), publicKeyDtoAsString, initiationVectorAsString);
     }
 }
