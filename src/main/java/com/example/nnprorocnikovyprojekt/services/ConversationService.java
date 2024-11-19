@@ -25,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +57,16 @@ public class ConversationService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    public ObjectMapper objectMapper;
 
     public Conversation getConversationById(Integer conversationId) {
         return conversationRepository.getConversationByConversationId(conversationId).orElseThrow(() -> new RuntimeException("Conversation not found"));
+    }
+
+    //pro testy
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
     //Neukladame zpravy, ktere nejsme schopni odeslat?
@@ -112,10 +120,10 @@ public class ConversationService {
     public GetConversationMessagesDtoResponse getConversationMessagesDtoResponse(GetConversationMessagesDto getConversationMessagesDto) {
         User user = userService.getUserFromContext();
         Conversation conversation = getConversationById(getConversationMessagesDto.getConversationId());
-        LocalDateTime dateFrom = getConversationMessagesDto.getFrom();
-        LocalDateTime dateTo = getConversationMessagesDto.getTo();
-        if (dateFrom == null) dateFrom = LocalDateTime.of(2000, 1, 1, 1, 1);
-        if (dateTo == null) dateTo = LocalDateTime.MAX;
+        Instant dateFrom = getConversationMessagesDto.getFrom();
+        Instant dateTo = getConversationMessagesDto.getTo();
+        if (dateFrom == null) dateFrom = Instant.from(LocalDateTime.of(2000, 1, 1, 1, 1).atOffset(ZoneOffset.UTC));
+        if (dateTo == null) dateTo = Instant.MAX;
         if (conversation == null) throw new RuntimeException("Conversation is null");
 
         ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
@@ -123,7 +131,7 @@ public class ConversationService {
         Integer pageIndex = pageInfoDtoRequest == null ? 0 : pageInfoDtoRequest.getPageIndex();
         Integer pageSize = pageInfoDtoRequest == null ? Integer.MAX_VALUE : pageInfoDtoRequest.getPageSize();
         Pageable pageInfo = PageRequest.of(pageIndex, pageSize).withSort(Sort.Direction.DESC, "messageId");
-        Page<Message> messages = messageRepository.getMessageByConversationBetweenDatesValidTo(pageInfo, conversation, dateFrom, dateTo, LocalDateTime.now(), conversationUser);
+        Page<Message> messages = messageRepository.getMessageByConversationBetweenDatesValidTo(pageInfo, conversation, dateFrom, dateTo, Instant.now(), conversationUser);
         //Todo je potreba?
         //getConversationMessagesDtoResponse.setCipheredSymmetricKey(conversationUser.getEncryptedSymmetricKey());
         GetConversationMessagesDtoResponse getConversationMessagesDtoResponse = mapGetConversationMessagesDtoResponse(messages);

@@ -1,11 +1,11 @@
 package com.example.nnprorocnikovyprojekt.entity.interfaces;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public interface WithExpiration {
-    LocalDateTime getExpirationDate();
+    Instant getExpirationDate();
 
-    void setExpirationDate(LocalDateTime expirationDate);
+    void setExpirationDate(Instant expirationDate);
 
     boolean isValid();
 

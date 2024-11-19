@@ -1,15 +1,15 @@
 package com.example.nnprorocnikovyprojekt.dtos.user;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class ExpirationDateDto {
-    private LocalDateTime expirationDate;
+    private Instant expirationDate;
 
-    public LocalDateTime getExpirationDate() {
+    public Instant getExpirationDate() {
         return expirationDate;
     }
 
-    public void setExpirationDate(LocalDateTime expirationDate) {
+    public void setExpirationDate(Instant expirationDate) {
         this.expirationDate = expirationDate;
     }
 }

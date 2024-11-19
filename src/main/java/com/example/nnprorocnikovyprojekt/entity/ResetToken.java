@@ -4,7 +4,7 @@ import com.example.nnprorocnikovyprojekt.entity.interfaces.WithExpiration;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "RESET_TOKEN")
@@ -20,7 +20,7 @@ public class ResetToken implements WithExpiration {
 
     @Column
     @NotNull
-    private LocalDateTime expirationDate;
+    private Instant expirationDate;
 
     @Column
     @NotNull
@@ -32,7 +32,7 @@ public class ResetToken implements WithExpiration {
     public ResetToken(User user, String token) {
         this.user = user;
         this.valid = true;
-        this.expirationDate = LocalDateTime.now().plusHours(1);
+        this.expirationDate = Instant.now().plusSeconds(3600);
         this.token = token;
     }
 
@@ -57,12 +57,12 @@ public class ResetToken implements WithExpiration {
     }
 
     @Override
-    public LocalDateTime getExpirationDate() {
+    public Instant getExpirationDate() {
         return expirationDate;
     }
 
     @Override
-    public void setExpirationDate(LocalDateTime expirationDate) {
+    public void setExpirationDate(Instant expirationDate) {
         this.expirationDate = expirationDate;
     }
 

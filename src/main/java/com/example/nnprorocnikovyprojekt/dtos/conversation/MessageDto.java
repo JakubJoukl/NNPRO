@@ -1,6 +1,6 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class MessageDto {
 
@@ -10,9 +10,9 @@ public class MessageDto {
 
     private String message;
 
-    private LocalDateTime dateSend;
+    private Instant dateSend;
 
-    private LocalDateTime validTo;
+    private Instant validTo;
 
     public String getMessage() {
         return message;
@@ -38,19 +38,19 @@ public class MessageDto {
         this.sender = sender;
     }
 
-    public LocalDateTime getDateSend() {
+    public Instant getDateSend() {
         return dateSend;
     }
 
-    public void setDateSend(LocalDateTime dateSend) {
+    public void setDateSend(Instant dateSend) {
         this.dateSend = dateSend;
     }
 
-    public LocalDateTime getValidTo() {
+    public Instant getValidTo() {
         return validTo;
     }
 
-    public void setValidTo(LocalDateTime validTo) {
+    public void setValidTo(Instant validTo) {
         this.validTo = validTo;
     }
 }

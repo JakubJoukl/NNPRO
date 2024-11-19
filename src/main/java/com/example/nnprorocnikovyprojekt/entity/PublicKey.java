@@ -3,7 +3,7 @@ package com.example.nnprorocnikovyprojekt.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "PUBLIC_KEY")
@@ -19,7 +19,7 @@ public class PublicKey {
 
     @Column
     @NotNull
-    private LocalDateTime creationDate;
+    private Instant creationDate;
 
     @Column
     @NotNull
@@ -32,7 +32,7 @@ public class PublicKey {
     public PublicKey() {
     }
 
-    public PublicKey(String keyValue, LocalDateTime creationDate, boolean valid, User owner) {
+    public PublicKey(String keyValue, Instant creationDate, boolean valid, User owner) {
         this.keyValue = keyValue;
         this.creationDate = creationDate;
         this.valid = valid;
@@ -55,11 +55,11 @@ public class PublicKey {
         this.keyValue = key;
     }
 
-    public LocalDateTime getCreationDate() {
+    public Instant getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(LocalDateTime creationDate) {
+    public void setCreationDate(Instant creationDate) {
         this.creationDate = creationDate;
     }
 

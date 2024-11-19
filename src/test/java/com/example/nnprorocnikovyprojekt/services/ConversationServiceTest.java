@@ -1,6 +1,7 @@
 package com.example.nnprorocnikovyprojekt.services;
 
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.PublicKeyDto;
 import com.example.nnprorocnikovyprojekt.entity.*;
@@ -14,10 +15,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +47,8 @@ class ConversationServiceTest {
     @Mock
     private MessageRepository messageRepository;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void getConversationById() {
@@ -62,6 +67,7 @@ class ConversationServiceTest {
 
     @Test
     void addUserToConversation() throws JsonProcessingException {
+        conversationService.setObjectMapper(objectMapper);
         Optional<Conversation> conversationOptional = getTestConversation();
         User user = getTestUser();
         AddRemoveUserToConversationDto addRemoveUserToConversationDto = new AddRemoveUserToConversationDto();
@@ -107,6 +113,7 @@ class ConversationServiceTest {
 
     @Test
     void getConversationMessagesDtoResponse() {
+        conversationService.setObjectMapper(objectMapper);
         Optional<Conversation> conversationOptional = getTestConversation();
         Conversation conversation = conversationOptional.get();
         User user = getTestUser();
@@ -115,11 +122,16 @@ class ConversationServiceTest {
 
         GetConversationMessagesDto getConversationMessagesDto = new GetConversationMessagesDto();
 
-        LocalDateTime from = LocalDateTime.of(2024, 11, 16, 0, 0);
-        LocalDateTime to = LocalDateTime.of(2024, 11, 17, 0, 0);
+        Instant from = Instant.from(LocalDateTime.of(2024, 11, 16, 0, 0).atOffset(ZoneOffset.UTC));
+        Instant to = Instant.from(LocalDateTime.of(2024, 11, 17, 0, 0).atOffset(ZoneOffset.UTC));
+        Instant validTo = Instant.from(LocalDateTime.of(2024, 11, 18, 0, 0).atOffset(ZoneOffset.UTC));
+        PageInfoDtoRequest request = new PageInfoDtoRequest();
+        request.setPageIndex(0);
+        request.setPageSize(50);
 
         getConversationMessagesDto.setFrom(from);
         getConversationMessagesDto.setTo(to);
+        getConversationMessagesDto.setPageInfo(request);
         getConversationMessagesDto.setConversationId(conversation.getConversationId());
 
         Pageable pageInfo = PageRequest.of(0, 50).withSort(Sort.Direction.DESC, "messageId");
@@ -130,7 +142,7 @@ class ConversationServiceTest {
         messages.add(new Message(user, conversation, content2, null));
         Page<Message> pagedResponse = new PageImpl(messages);
 
-        when(messageRepository.getMessageByConversationBetweenDatesValidTo(pageInfo, conversation, from, to, null, conversationUser)).thenReturn(pagedResponse);
+        when(messageRepository.getMessageByConversationBetweenDatesValidTo(eq(pageInfo), eq(conversation), eq(from), eq(to), any(Instant.class), eq(conversationUser))).thenReturn(pagedResponse);
         when(conversationRepository.getConversationByConversationId(conversation.getConversationId())).thenReturn(conversationOptional);
         when(userService.getUserFromContext()).thenReturn(user);
 
@@ -139,6 +151,7 @@ class ConversationServiceTest {
 
     @Test
     void createConversation() {
+        conversationService.setObjectMapper(objectMapper);
         CreateConversationDto createConversationDto = new CreateConversationDto();
         String name = "Konverzace";
         createConversationDto.setName(name);
@@ -187,7 +200,7 @@ class ConversationServiceTest {
         User user = new User(username, password, email);
 
         String keyValue = "{\"crv\":\"P-256\",\"ext\":true,\"kty\":\"EC\",\"keyOps\":null,\"x\":\"FOHS2BTBzSBnu7V0LDJYXt30rR08B1UGYR_O5fhAcnM\",\"y\":\"Wb0ZaxmFYct3vm61zkAGyk4JPXPc3bPp1-uAEEJbxBM\"}";
-        LocalDateTime creationDate = LocalDateTime.of(2024, 11, 16, 0, 0);
+        Instant creationDate = Instant.from(LocalDateTime.of(2024, 11, 16, 0, 0).atOffset(ZoneOffset.UTC));
         boolean valid = true;
         user.getPublicKeys().add(new PublicKey(keyValue, creationDate, valid, user));
         return user;

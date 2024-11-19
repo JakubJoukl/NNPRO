@@ -2,27 +2,27 @@ package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class GetConversationMessagesDto {
     private PageInfoDtoRequest pageInfo;
-    private LocalDateTime from;
-    private LocalDateTime to;
+    private Instant from;
+    private Instant to;
     private Integer conversationId;
 
-    public LocalDateTime getFrom() {
+    public Instant getFrom() {
         return from;
     }
 
-    public void setFrom(LocalDateTime from) {
+    public void setFrom(Instant from) {
         this.from = from;
     }
 
-    public LocalDateTime getTo() {
+    public Instant getTo() {
         return to;
     }
 
-    public void setTo(LocalDateTime to) {
+    public void setTo(Instant to) {
         this.to = to;
     }
 

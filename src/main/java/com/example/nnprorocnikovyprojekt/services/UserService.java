@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -69,7 +70,8 @@ public class UserService implements UserDetailsService {
     @Autowired
     private ModelMapper modelMapper;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
     private SecureRandom secureRandom = new SecureRandom();
     private Integer RANDOM_BOUND = 999999;
 
@@ -96,7 +98,7 @@ public class UserService implements UserDetailsService {
 
         if(resetToken == null) throw new RuntimeException("Reset token was not found");
 
-        boolean resetTokenIsValid = resetToken.isValid() && LocalDateTime.now().isBefore(resetToken.getExpirationDate());
+        boolean resetTokenIsValid = resetToken.isValid() && Instant.now().isBefore(resetToken.getExpirationDate());
         if(resetTokenIsValid){
             User user = resetToken.getUser();
             changePassword(resetPasswordRequest.getPassword(), user);
@@ -154,7 +156,7 @@ public class UserService implements UserDetailsService {
         deactivateUserVerificationTokens(user);
         String verificationCodeValue = Integer.toString(secureRandom.nextInt(RANDOM_BOUND));
         verificationCodeValue = StringUtils.leftPad(verificationCodeValue, 6, "0");
-        LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(5);
+        Instant expirationDate = Instant.now().plusSeconds(5 * 60);
         VerificationCode verificationCode = new VerificationCode(verificationCodeValue, expirationDate, user);
         user.getVerificationCodes().add(verificationCode);
         userRepository.save(user);
@@ -187,7 +189,7 @@ public class UserService implements UserDetailsService {
         if(user == null) return false;
 
         List<VerificationCode> verificationCode = verificationCodeRepository.findValidVerificationCodes(user, verificationCodeValue);
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         boolean nonExpiredValidCodeExists = verificationCode.stream().anyMatch(verificationCode1 -> verificationCode1.getExpirationDate().isAfter(now));
         if(nonExpiredValidCodeExists) {
@@ -207,7 +209,7 @@ public class UserService implements UserDetailsService {
             if(updateUserDto.getPassword() != null) user.setPassword(encryptPassword(updateUserDto.getPassword()));
             if(updateUserDto.getPublicKey() != null) {
                 user.getActivePublicKey().ifPresent(publicKey -> publicKey.setValid(false));
-                user.getPublicKeys().add(new PublicKey(objectMapper.writeValueAsString(updateUserDto.getPublicKey()), LocalDateTime.now(), true, user));
+                user.getPublicKeys().add(new PublicKey(objectMapper.writeValueAsString(updateUserDto.getPublicKey()), Instant.now(), true, user));
             }
             user = saveUser(user);
         }

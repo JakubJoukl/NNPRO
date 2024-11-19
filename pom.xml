@@ -28,6 +28,8 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <!-- TODO vytahnout verze zavislosti pro plugin a pro projekt a dat je na jedno misto-->
     </properties>
     <dependencies>

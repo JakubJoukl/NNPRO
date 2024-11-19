@@ -8,8 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.Instant;
 
 public interface MessageRepository extends JpaRepository<Message, Integer> {
     @Query("    SELECT m \n" +
@@ -18,5 +17,5 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
             "      AND :conversationUser MEMBER OF m.conversation.conversationUsers\n" +
             "      AND (m.dateSend >= :from AND m.dateSend <= :to)\n" +
             "      AND (m.validTo IS NULL OR m.validTo < :validTo)")
-    Page<Message> getMessageByConversationBetweenDatesValidTo(Pageable pageable, Conversation conversation, LocalDateTime from, LocalDateTime to, LocalDateTime validTo, ConversationUser conversationUser);
+    Page<Message> getMessageByConversationBetweenDatesValidTo(Pageable pageable, Conversation conversation, Instant from, Instant to, Instant validTo, ConversationUser conversationUser);
 }

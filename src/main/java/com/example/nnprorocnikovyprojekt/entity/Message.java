@@ -3,7 +3,7 @@ package com.example.nnprorocnikovyprojekt.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "MESSAGE")
@@ -22,10 +22,10 @@ public class Message {
 
     @Column
     @NotNull
-    private LocalDateTime dateSend;
+    private Instant dateSend;
 
     @Column
-    private LocalDateTime validTo;
+    private Instant validTo;
 
     @ManyToOne
     @JoinColumn(name="conversation_id", nullable = false)
@@ -35,11 +35,11 @@ public class Message {
 
     }
 
-    public Message(User sender, Conversation conversation, String content, LocalDateTime validTo) {
+    public Message(User sender, Conversation conversation, String content, Instant validTo) {
         this.sender = sender;
         this.conversation = conversation;
         this.content = content;
-        this.dateSend = LocalDateTime.now();
+        this.dateSend = Instant.now();
         this.validTo = validTo;
     }
 
@@ -75,19 +75,19 @@ public class Message {
         this.content = message;
     }
 
-    public LocalDateTime getDateSend() {
+    public Instant getDateSend() {
         return dateSend;
     }
 
-    public void setDateSend(LocalDateTime dateSend) {
+    public void setDateSend(Instant dateSend) {
         this.dateSend = dateSend;
     }
 
-    public LocalDateTime getValidTo() {
+    public Instant getValidTo() {
         return validTo;
     }
 
-    public void setValidTo(LocalDateTime validTo) {
+    public void setValidTo(Instant validTo) {
         this.validTo = validTo;
     }
 }

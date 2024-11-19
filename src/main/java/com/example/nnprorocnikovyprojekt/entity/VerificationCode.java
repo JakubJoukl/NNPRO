@@ -4,7 +4,7 @@ import com.example.nnprorocnikovyprojekt.entity.interfaces.WithExpiration;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "VERIFICATION_CODE")
@@ -20,7 +20,7 @@ public class VerificationCode implements WithExpiration {
 
     @Column
     @NotNull
-    private LocalDateTime expirationDate;
+    private Instant expirationDate;
 
     @Column
     @NotNull
@@ -34,7 +34,7 @@ public class VerificationCode implements WithExpiration {
 
     }
 
-    public VerificationCode(String verificationCode, LocalDateTime expirationDate, User user){
+    public VerificationCode(String verificationCode, Instant expirationDate, User user){
         this.verificationCode = verificationCode;
         this.valid = true;
         this.expirationDate = expirationDate;
@@ -42,12 +42,12 @@ public class VerificationCode implements WithExpiration {
     }
 
     @Override
-    public LocalDateTime getExpirationDate() {
+    public Instant getExpirationDate() {
         return expirationDate;
     }
 
     @Override
-    public void setExpirationDate(LocalDateTime expirationDate) {
+    public void setExpirationDate(Instant expirationDate) {
         this.expirationDate = expirationDate;
     }
 
