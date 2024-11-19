@@ -16,7 +16,7 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
             "    FROM Message m \n" +
             "    WHERE m.conversation = :conversation \n" +
             "      AND :conversationUser MEMBER OF m.conversation.conversationUsers\n" +
-            "      AND (:from is null or :to is null OR m.dateSend BETWEEN :from AND :to)\n" +
-            "      AND (:validTo IS NULL OR m.validTo < :validTo)")
+            "      AND (m.dateSend >= :from AND m.dateSend <= :to)\n" +
+            "      AND (m.validTo IS NULL OR m.validTo < :validTo)")
     Page<Message> getMessageByConversationBetweenDatesValidTo(Pageable pageable, Conversation conversation, LocalDateTime from, LocalDateTime to, LocalDateTime validTo, ConversationUser conversationUser);
 }

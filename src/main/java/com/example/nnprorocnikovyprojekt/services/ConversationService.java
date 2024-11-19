@@ -117,7 +117,7 @@ public class ConversationService {
         Conversation conversation = getConversationById(getConversationMessagesDto.getConversationId());
         LocalDateTime dateFrom = getConversationMessagesDto.getFrom();
         LocalDateTime dateTo = getConversationMessagesDto.getTo();
-        if(dateFrom == null) dateFrom = LocalDateTime.MIN;
+        if(dateFrom == null) dateFrom = LocalDateTime.of(2000, 1,1,1,1);
         if(dateTo == null) dateTo = LocalDateTime.MAX;
         if(conversation == null) throw new RuntimeException("Conversation is null");
 
