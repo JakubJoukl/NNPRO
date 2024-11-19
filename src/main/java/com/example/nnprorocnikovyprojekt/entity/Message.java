@@ -27,6 +27,9 @@ public class Message {
     @Column
     private Instant validTo;
 
+    @Column(length = 400)
+    private String initiationVector;
+
     @ManyToOne
     @JoinColumn(name="conversation_id", nullable = false)
     private Conversation conversation;
@@ -35,12 +38,13 @@ public class Message {
 
     }
 
-    public Message(User sender, Conversation conversation, String content, Instant validTo) {
+    public Message(User sender, Conversation conversation, String content, Instant validTo, String initiationVector) {
         this.sender = sender;
         this.conversation = conversation;
         this.content = content;
         this.dateSend = Instant.now();
         this.validTo = validTo;
+        this.initiationVector = initiationVector;
     }
 
     public Integer getMessageId() {
@@ -89,5 +93,13 @@ public class Message {
 
     public void setValidTo(Instant validTo) {
         this.validTo = validTo;
+    }
+
+    public String getInitiationVector() {
+        return initiationVector;
+    }
+
+    public void setInitiationVector(String initiationVector) {
+        this.initiationVector = initiationVector;
     }
 }

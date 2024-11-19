@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -138,8 +139,16 @@ class ConversationServiceTest {
         List<Message> messages = new ArrayList<>();
         String content = "q";
         String content2 = "qq";
-        messages.add(new Message(user, conversation, content, null));
-        messages.add(new Message(user, conversation, content2, null));
+        HashMap<String, Integer> iv = new HashMap<>();
+        iv.put("1", 5);
+        String initiationVector = null;
+        try {
+            initiationVector = objectMapper.writeValueAsString(iv);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("OOPS");
+        }
+        messages.add(new Message(user, conversation, content, null, initiationVector));
+        messages.add(new Message(user, conversation, content2, null, initiationVector));
         Page<Message> pagedResponse = new PageImpl(messages);
 
         when(messageRepository.getMessageByConversationBetweenDatesValidTo(eq(pageInfo), eq(conversation), eq(from), eq(to), any(Instant.class), eq(conversationUser))).thenReturn(pagedResponse);

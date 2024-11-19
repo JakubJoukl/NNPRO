@@ -78,7 +78,14 @@ public class ConversationService {
 
         Conversation conversation = getConversationById(messageDto.getConversationId());
 
-        Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo());
+        String initiationVectorAsString = null;
+        try {
+            initiationVectorAsString = objectMapper.writeValueAsString(messageDto.getIv());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse dto to message");
+        }
+
+        Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo(), initiationVectorAsString);
         messageService.saveMessage(message);
         simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId().toString(), messageDto.getMessage());
     }
@@ -207,6 +214,12 @@ public class ConversationService {
         messageDto.setSender(message.getSender().getUsername());
         messageDto.setDateSend(message.getDateSend());
         messageDto.setValidTo(message.getValidTo());
+        try {
+            HashMap<String, Integer> ivMap = (HashMap<String, Integer>) objectMapper.readValue(message.getInitiationVector(), Map.class);
+            messageDto.setIv(ivMap);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse initiation vector");
+        }
         return messageDto;
     }
 

@@ -1,10 +1,13 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
 import java.time.Instant;
+import java.util.HashMap;
 
 public class MessageDto {
 
     private Integer conversationId;
+
+    private HashMap<String, Integer> iv = new HashMap<>();
 
     private String sender;
 
@@ -52,5 +55,13 @@ public class MessageDto {
 
     public void setValidTo(Instant validTo) {
         this.validTo = validTo;
+    }
+
+    public HashMap<String, Integer> getIv() {
+        return iv;
+    }
+
+    public void setIv(HashMap<String, Integer> iv) {
+        this.iv = iv;
     }
 }
