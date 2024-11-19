@@ -96,3 +96,6 @@ ALTER TABLE conversation_user ADD initiation_vector VARCHAR(400) NULL;
 
 -- changeset Kuba:1731864337621-1
 ALTER TABLE message ADD valid_to datetime(6);
+
+-- changeset Kuba:1732049833344-1
+ALTER TABLE message ADD initiation_vector VARCHAR(400) NULL;
