@@ -210,6 +210,8 @@ public class ConversationService {
 
     private MessageDto convertMessageToMessageDto(Message message) {
         MessageDto messageDto = new MessageDto();
+        messageDto.setConversationId(message.getConversation().getConversationId());
+        messageDto.setId(message.getMessageId());
         messageDto.setMessage(message.getContent());
         messageDto.setSender(message.getSender().getUsername());
         messageDto.setDateSend(message.getDateSend());

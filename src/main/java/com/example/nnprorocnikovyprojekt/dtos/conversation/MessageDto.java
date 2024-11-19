@@ -5,6 +5,8 @@ import java.util.HashMap;
 
 public class MessageDto {
 
+    private Integer id;
+
     private Integer conversationId;
 
     private HashMap<String, Integer> iv = new HashMap<>();
@@ -63,5 +65,13 @@ public class MessageDto {
 
     public void setIv(HashMap<String, Integer> iv) {
         this.iv = iv;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 }
