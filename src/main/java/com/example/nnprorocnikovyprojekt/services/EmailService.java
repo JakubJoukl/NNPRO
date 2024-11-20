@@ -7,6 +7,7 @@ import com.sun.mail.util.MailSSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,17 @@ import java.util.Properties;
 
 @Service
 public class EmailService {
+    private String smtpHost;
+
+    private String smtpPort;
+
+    private String smtpStartTlsEnable;
+
+    private String smtpAuth;
+
+    private String mailUsername;
+
+    private String mailPassword;
 
     @Autowired
     private EmailServiceAsync emailServiceAsync;
@@ -35,7 +47,16 @@ public class EmailService {
 
     //Heslo: akxx jzcv whcy zptj
 
-    public EmailService() {
+    public EmailService(@Value("${mail.smtp.host}") String smtpHost, @Value("${mail.smtp.port}") String smtpPort, @Value("${mail.smtp.starttls.enable}") String smtpStartTlsEnable,
+                        @Value("${mail.smtp.auth}") String smtpAuth, @Value("${mail.username}") String mailUsername, @Value("${mail.password}") String mailPassword) {
+        this.smtpHost = smtpHost;
+        this.smtpPort = smtpPort;
+        this.smtpStartTlsEnable = smtpStartTlsEnable;
+        this.smtpAuth = smtpAuth;
+        this.mailUsername = mailUsername;
+        this.mailPassword = mailPassword;
+
+
         MailSSLSocketFactory sf = null;
         try {
             sf = new MailSSLSocketFactory();
@@ -45,10 +66,11 @@ public class EmailService {
         sf.setTrustAllHosts(true);
 
         // Setup mail server
-        properties.put("mail.smtp.host", "smtp.gmail.com");
-        properties.put("mail.smtp.port", "587");
-        properties.put("mail.smtp.starttls.enable", "true");
-        properties.put("mail.smtp.auth", "true");
+        System.out.println("mailUsername = " + smtpHost);
+        properties.put("mail.smtp.host", smtpHost);
+        properties.put("mail.smtp.port", smtpPort);
+        properties.put("mail.smtp.starttls.enable", smtpStartTlsEnable);
+        properties.put("mail.smtp.auth", smtpAuth);
         properties.put("mail.smtp.ssl.socketFactory", sf);
     }
 
@@ -77,7 +99,7 @@ public class EmailService {
         Session session = Session.getInstance(properties, new javax.mail.Authenticator() {
 
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication("semestralkaa@gmail.com", "akxx jzcv whcy zptj");
+                return new PasswordAuthentication(mailUsername, mailPassword);
 
             }
 
