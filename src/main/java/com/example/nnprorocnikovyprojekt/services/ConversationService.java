@@ -109,14 +109,9 @@ public class ConversationService {
         Message message = messageService.getMessageById(deleteMessageDto.getId());
         if(message.getSender() != sender) throw new RuntimeException("User is not the sender of this message");
         messageService.deleteMessage(message);
-
-        notifyUsersAboutRemovedMessageExceptSender(sender, message);
+        simpMessagingTemplate.convertAndSend("/topic/deleteMessage/" + message.getConversation().getConversationId(), convertMessageToMessageDto(message));
     }
 
-    private void notifyUsersAboutRemovedMessageExceptSender(User sender, Message message) {
-        List<User> usersToNotify = getUsersExceptCreator(message.getConversation(), sender);
-        usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/deleteMessage/" + user.getUsername(), convertMessageToMessageDto(message)));
-    }
 
     //realne jen pro druheho uzivatele
     private void notifyOtherConversationParties(User originator, Conversation conversation){

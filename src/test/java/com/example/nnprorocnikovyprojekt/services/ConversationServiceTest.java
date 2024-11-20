@@ -67,7 +67,7 @@ class ConversationServiceTest {
 
     @Test
     void sendMessageToAllSubscribersExceptUser() {
-        //TODO
+        //TODO Sockety netestujeme?
     }
 
     @Test

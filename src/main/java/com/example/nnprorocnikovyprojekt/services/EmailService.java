@@ -4,6 +4,8 @@ import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
 import com.sun.mail.util.MailSSLSocketFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,8 @@ public class EmailService {
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MMM.yyyy HH:mm");
     Properties properties = System.getProperties();
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     //Heslo: akxx jzcv whcy zptj
 
@@ -91,7 +95,6 @@ public class EmailService {
         Session session = initiateSession();
 
         try {
-            // Create a default MimeMessage object.
             MimeMessage message = new MimeMessage(session);
 
             ResetToken resetToken = userService.generateResetTokenForUser(user);
@@ -101,7 +104,7 @@ public class EmailService {
 
             emailServiceAsync.sendEmail(message, user.getEmail(), subject, emailHtmlContent);
         } catch (MessagingException mex) {
-            //TODO logging
+            logger.error("Failed to send email: " + mex.getMessage());
         }
     }
 }
