@@ -67,7 +67,7 @@ public class ChatController {
         return ResponseEntity.status(HttpStatus.OK).body(conversationNameDto);
     }
 
-    @MessageMapping("/deleteMessage")
+    @DeleteMapping("/deleteMessage")
     public ResponseEntity<?> deleteMessage(@RequestBody DeleteMessageDto deleteMessageDto){
         conversationService.deleteMessage(deleteMessageDto);
         return ResponseEntity.status(200).body(new GeneralResponseDto("Message deleted"));
