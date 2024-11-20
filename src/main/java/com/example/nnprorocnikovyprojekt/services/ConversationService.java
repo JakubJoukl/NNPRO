@@ -87,7 +87,7 @@ public class ConversationService {
 
         Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo(), initiationVectorAsString);
         messageService.saveMessage(message);
-        simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId().toString(), messageDto.getMessage());
+        simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId().toString(), messageDto);
     }
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
