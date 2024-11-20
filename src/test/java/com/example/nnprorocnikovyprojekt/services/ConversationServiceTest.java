@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -50,6 +51,9 @@ class ConversationServiceTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Mock
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     @Test
     void getConversationById() {
