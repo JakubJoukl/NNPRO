@@ -21,13 +21,25 @@ public class ChatController {
 
     //https://medium.com/@poojithairosha/spring-boot-3-authenticate-websocket-connections-with-jwt-tokens-2b4ff60532b6
     //Asi chci destination variable a nepotrebuji hodnotu z Dto?
+    //topic/${conversationId}
     @MessageMapping("/sendMessageToConversation")
     public ResponseEntity<?> chat(Principal principal, MessageDto messageDto) {
         System.out.println(principal);
         //TODO sout po otestovani funkcionalit smazat
         System.out.format("Message received: {%s}", messageDto.getMessage());
         try {
-            conversationService.sendMessageToAllSubscribersExceptUser(principal, messageDto);
+            conversationService.sendMessageToAllSubscribers(principal, messageDto);
+            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process the message"));
+        }
+    }
+
+    //topic/${username}
+    @MessageMapping("/sendNewConversationNotificationToUser")
+    public ResponseEntity<?> newConversationNotification(Principal principal, ConversationNameDto conversationNameDto) {
+        try {
+            conversationService.notifyUserAboutNewConversation(principal, conversationNameDto);
             return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process the message"));

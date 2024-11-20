@@ -70,8 +70,7 @@ public class ConversationService {
     }
 
     //Neukladame zpravy, ktere nejsme schopni odeslat?
-    @Transactional(rollbackFor = Exception.class)
-    public void sendMessageToAllSubscribersExceptUser(Principal principal, MessageDto messageDto) {
+    public void sendMessageToAllSubscribers(Principal principal, MessageDto messageDto) {
         User user = userService.getUserByUsername(principal.getName());
 
         if (user == null) throw new RuntimeException("User not found");
@@ -87,7 +86,17 @@ public class ConversationService {
 
         Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo(), initiationVectorAsString);
         messageService.saveMessage(message);
-        simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId().toString(), messageDto);
+        simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId(), messageDto);
+    }
+
+    public void notifyUserAboutNewConversation(Principal principal, ConversationNameDto conversationNameDto) {
+        User user = userService.getUserByUsername(principal.getName());
+
+        if (user == null) throw new RuntimeException("User not found");
+
+        Conversation conversation = getConversationById(conversationNameDto.getId());
+
+        simpMessagingTemplate.convertAndSend("/topic/" + user.getUsername(), convertConversationToConversationNameDto(conversation));
     }
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
