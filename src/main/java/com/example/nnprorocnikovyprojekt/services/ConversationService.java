@@ -70,6 +70,7 @@ public class ConversationService {
     }
 
     //Neukladame zpravy, ktere nejsme schopni odeslat?
+    @Transactional(rollbackFor = Exception.class)
     public void sendMessageToAllSubscribers(Principal principal, MessageDto messageDto) {
         User user = userService.getUserByUsername(principal.getName());
 
