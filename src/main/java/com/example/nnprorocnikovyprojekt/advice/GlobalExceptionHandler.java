@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
         try {
             username = userService.getUserFromContext().getUsername();
         } catch (Exception e) {
-            username = "COULD NOT GET USERNAME - DB FAILURE?";
+            username = "username NOT in context";
         }
 
         String requestURI = request.getRequestURI();
