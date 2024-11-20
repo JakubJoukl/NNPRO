@@ -89,14 +89,38 @@ public class ConversationService {
         simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId(), messageDto);
     }
 
-    public void notifyUserAboutNewConversation(Principal principal, ConversationNameDto conversationNameDto) {
-        User user = userService.getUserByUsername(principal.getName());
+    public void notifyUsersAboutNewConversationExceptCreator(Conversation conversation, User creator) {
+        List<User> usersToNotify = getUsersExceptCreator(conversation, creator);
 
-        if (user == null) throw new RuntimeException("User not found");
+        usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/newConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation)));
+    }
 
-        Conversation conversation = getConversationById(conversationNameDto.getId());
+    private List<User> getUsersExceptCreator(Conversation conversation, User creator) {
+        List<User> usersToNotify = conversation.getConversationUsers().stream()
+                .map(ConversationUser::getUser)
+                .filter(user -> !user.equals(creator))
+                .collect(Collectors.toList());
+        return usersToNotify;
+    }
 
-        simpMessagingTemplate.convertAndSend("/topic/" + user.getUsername(), convertConversationToConversationNameDto(conversation));
+    public void deleteMessage(DeleteMessageDto deleteMessageDto){
+        User sender = userService.getUserFromContext();
+        Message message = messageService.getMessageById(deleteMessageDto.getId());
+        if(message.getSender() != sender) throw new RuntimeException("User is not the sender of this message");
+        messageService.deleteMessage(message);
+
+        notifyUsersAboutRemovedMessageExceptSender(sender, message);
+    }
+
+    private void notifyUsersAboutRemovedMessageExceptSender(User sender, Message message) {
+        List<User> usersToNotify = getUsersExceptCreator(message.getConversation(), sender);
+        usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/deleteMessage/" + user.getUsername(), convertMessageToMessageDto(message)));
+    }
+
+    //realne jen pro druheho uzivatele
+    private void notifyOtherConversationParties(User originator, Conversation conversation){
+        List<User> usersToNotify = getUsersExceptCreator(conversation, originator);
+        usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/deleteConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation)));
     }
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
@@ -161,9 +185,11 @@ public class ConversationService {
         Conversation updatedConversation = conversationRepository.save(conversation);
 
         List<ConversationUser> conversationUsers = getConversationUsersFromDto(createConversationDto, updatedConversation);
-
         updatedConversation.getConversationUsers().addAll(conversationUsers);
         Conversation returnedConversation = conversationRepository.save(updatedConversation);
+
+        User creator = userService.getUserFromContext();
+        notifyUsersAboutNewConversationExceptCreator(conversation, creator);
         return convertConversationToConversationNameDto(returnedConversation);
     }
 
@@ -172,10 +198,33 @@ public class ConversationService {
         Conversation conversation = getConversationById(leaveConversationDto.getConversationId());
         int sizeBeforeRemove = conversation.getConversationUsers().size();
         conversation.getConversationUsers().removeIf(conversationUser -> conversationUser.getUser().getUsername().equals(leaveConversationDto.getUsername()));
+        doRemoveUserAndCloseOrphanConversation(conversation, sizeBeforeRemove);
+    }
+
+    private void doRemoveUserAndCloseOrphanConversation(Conversation conversation, int sizeBeforeRemove) {
         saveConversation(conversation);
         if (sizeBeforeRemove != conversation.getConversationUsers().size() + 1) {
             throw new RuntimeException("Exactly 1 element was supposed to be deleted");
         }
+        if(conversation.getConversationUsers().size() == 0) {
+            deleteConversation(conversation);
+        }
+    }
+
+    public void deleteUserConversation(ConversationNameDto conversationNameDto){
+        User user = userService.getUserFromContext();
+        Conversation conversation = getConversationById(conversationNameDto.getId());
+        if(conversation.getConversationUsers().size() > 2) throw new RuntimeException("Can not delete group conversation");
+        if(conversation.getConversationUsers().stream().noneMatch(conversationUser -> conversationUser.getUser().equals(user))){
+            throw new RuntimeException("User is not a part of this conversation");
+        }
+        deleteConversation(conversation);
+        notifyOtherConversationParties(user, conversation);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    private void deleteConversation(Conversation conversation) {
+        conversationRepository.delete(conversation);
     }
 
     public GetConversationResponseDto getConversation(Integer conversationId) {

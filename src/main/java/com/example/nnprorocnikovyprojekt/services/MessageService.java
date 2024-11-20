@@ -17,4 +17,14 @@ public class MessageService {
         message.getConversation().getMessages().add(message);
         messageRepository.save(message);
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteMessage(Message message){
+        messageRepository.delete(message);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Message getMessageById(Integer messageId) {
+        return messageRepository.getMessageByMessageId(messageId);
+    }
 }

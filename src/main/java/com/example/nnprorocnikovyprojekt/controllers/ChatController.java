@@ -35,17 +35,6 @@ public class ChatController {
         }
     }
 
-    //topic/${username}
-    @MessageMapping("/sendNewConversationNotificationToUser")
-    public ResponseEntity<?> newConversationNotification(Principal principal, ConversationNameDto conversationNameDto) {
-        try {
-            conversationService.notifyUserAboutNewConversation(principal, conversationNameDto);
-            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process the message"));
-        }
-    }
-
     @PostMapping(path = "/listUserConversation")
     public ResponseEntity<?> listUserConversation(@RequestBody PageInfoRequestWrapper pageInfoRequestWrapper){
         try {
@@ -103,6 +92,26 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.OK).body(conversationNameDto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to create the conversation"));
+        }
+    }
+
+    @DeleteMapping("/deleteMessage")
+    public ResponseEntity<?> deleteMessage(@RequestBody DeleteMessageDto deleteMessageDto){
+        try {
+            conversationService.deleteMessage(deleteMessageDto);
+            return ResponseEntity.status(200).body(new GeneralResponseDto("Message deleted"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to delete message"));
+        }
+    }
+
+    @DeleteMapping("/deleteConversation")
+    public ResponseEntity<?> deleteConversations(@RequestBody ConversationNameDto conversationNameDto){
+        try {
+            conversationService.deleteUserConversation(conversationNameDto);
+            return ResponseEntity.status(200).body(new GeneralResponseDto("Conversation deleted"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to delete conversation"));
         }
     }
 
