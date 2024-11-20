@@ -39,16 +39,15 @@ public class ControllerLogging {
     public void logAfterControllerMethod(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();
+        Principal principal = null;
         if(args != null) {
-            args = filterPrincipal(args);
+            principal = getPrincipal(args);
+            if(principal != null) {
+                args = filterPrincipal(args);
+            }
         }
-        String username = null;
 
-        try {
-            username = userService.getUserFromContext().getUsername();
-        } catch (Exception e) {
-            username = "username NOT in context";
-        }
+        String username = getRequestingUser(principal);
 
         try {
             String argsSerialized = objectMapper.writeValueAsString(args);
@@ -59,9 +58,27 @@ public class ControllerLogging {
         }
     }
 
+    private String getRequestingUser(Principal principal) {
+        String username = null;
+        try {
+            if(principal == null) {
+                username = userService.getUserFromContext().getUsername();
+            } else {
+                username = principal.getName();
+            }
+        } catch (Exception e) {
+            username = "username NOT in context";
+        }
+        return username;
+    }
+
     private Object[] filterPrincipal(Object[] args) {
         return Arrays.stream(args)
                 .filter(arg -> !(arg instanceof Principal))
                 .toArray();
+    }
+
+    private Principal getPrincipal(Object[] args) {
+        return (Principal)Arrays.stream(args).filter(arg -> arg instanceof Principal).findFirst().orElse(null);
     }
 }
