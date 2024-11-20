@@ -87,7 +87,7 @@ public class ConversationService {
 
         Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo(), initiationVectorAsString);
         messageService.saveMessage(message);
-        simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId(), messageDto);
+        simpMessagingTemplate.convertAndSend("/topic/" + conversation.getConversationId(), convertMessageToMessageDto(message));
     }
 
     public void notifyUsersAboutNewConversationExceptCreator(Conversation conversation, User creator) {
