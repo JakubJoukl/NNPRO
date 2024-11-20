@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
-@ControllerAdvice
+@ControllerAdvice(basePackages = "com.example.nnprorocnikovyprojekt.controllers")
 public class GlobalExceptionHandler {
     @Autowired
     private UserService userService;
@@ -23,8 +23,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<GeneralResponseDto> handleAllExceptions(Exception ex, HttpServletRequest request) {
         String username = null;
         try {
-            User user = userService.getUserFromContext();
-            username = user.getUsername();
+            username = userService.getUserFromContext().getUsername();
         } catch (Exception e) {
             username = "COULD NOT GET USERNAME - DB FAILURE?";
         }
