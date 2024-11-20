@@ -4,6 +4,7 @@ import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.services.ConversationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,95 +25,58 @@ public class ChatController {
     //topic/${conversationId}
     @MessageMapping("/sendMessageToConversation")
     public ResponseEntity<?> chat(Principal principal, MessageDto messageDto) {
-        System.out.println(principal);
         //TODO sout po otestovani funkcionalit smazat
         System.out.format("Message received: {%s}", messageDto.getMessage());
-        try {
-            conversationService.sendMessageToAllSubscribers(principal, messageDto);
-            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to process the message"));
-        }
+        conversationService.sendMessageToAllSubscribers(principal, messageDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
     }
 
     @PostMapping(path = "/listUserConversation")
     public ResponseEntity<?> listUserConversation(@RequestBody PageInfoRequestWrapper pageInfoRequestWrapper){
-        try {
-            ConversationPageResponseDto userConversations = conversationService.getConversationsByPage(pageInfoRequestWrapper);
-            return ResponseEntity.status(HttpStatus.OK).body(userConversations);
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get conversations"));
-        }
+        ConversationPageResponseDto userConversations = conversationService.getConversationsByPage(pageInfoRequestWrapper);
+        return ResponseEntity.status(HttpStatus.OK).body(userConversations);
     }
 
     @PostMapping("/addUserToConversation")
-    public ResponseEntity<?> addUserToConversation(@RequestBody AddRemoveUserToConversationDto addRemoveUserToConversationDto){
-        try {
-            AddUserToConversationResponse addUserToConversationResponse = conversationService.addUserToConversation(addRemoveUserToConversationDto);
-            return ResponseEntity.status(HttpStatus.OK).body(addUserToConversationResponse);
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to add user to the conversation"));
-        }
+    public ResponseEntity<?> addUserToConversation(@RequestBody AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
+        AddUserToConversationResponse addUserToConversationResponse = conversationService.addUserToConversation(addRemoveUserToConversationDto);
+        return ResponseEntity.status(HttpStatus.OK).body(addUserToConversationResponse);
     }
 
     @DeleteMapping("/leaveConversation")
     public ResponseEntity<?> removeUserFromConversation(@RequestBody LeaveConversationDto leaveConversationDto){
-        try {
-            conversationService.removeUserFromConversation(leaveConversationDto);
-            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User left the conversation"));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to remove user from the conversation"));
-        }
+        conversationService.removeUserFromConversation(leaveConversationDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User left the conversation"));
     }
 
     @PostMapping("/listMessages")
     public ResponseEntity<?> listMessages(@RequestBody GetConversationMessagesDto getConversationMessagesDto){
-        try {
-            GetConversationMessagesDtoResponse conversationMessagesDtoResponse = conversationService.getConversationMessagesDtoResponse(getConversationMessagesDto);
-            return ResponseEntity.status(HttpStatus.OK).body(conversationMessagesDtoResponse);
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get messages"));
-        }
+        GetConversationMessagesDtoResponse conversationMessagesDtoResponse = conversationService.getConversationMessagesDtoResponse(getConversationMessagesDto);
+        return ResponseEntity.status(HttpStatus.OK).body(conversationMessagesDtoResponse);
     }
 
     @GetMapping("/getConversation/{conversationId}")
     public ResponseEntity<?> getConversation(@PathVariable Integer conversationId){
-        try {
-            GetConversationResponseDto getConversationResponseDto = conversationService.getConversation(conversationId);
-            return ResponseEntity.status(HttpStatus.OK).body(getConversationResponseDto);
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get conversations"));
-        }
+        GetConversationResponseDto getConversationResponseDto = conversationService.getConversation(conversationId);
+        return ResponseEntity.status(HttpStatus.OK).body(getConversationResponseDto);
     }
 
     @PostMapping("/createConversation")
     public ResponseEntity<?> createConversation(@RequestBody CreateConversationDto createConversationDto){
-        try{
-            ConversationNameDto conversationNameDto = conversationService.createConversation(createConversationDto);
-            return ResponseEntity.status(HttpStatus.OK).body(conversationNameDto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to create the conversation"));
-        }
+        ConversationNameDto conversationNameDto = conversationService.createConversation(createConversationDto);
+        return ResponseEntity.status(HttpStatus.OK).body(conversationNameDto);
     }
 
     @DeleteMapping("/deleteMessage")
     public ResponseEntity<?> deleteMessage(@RequestBody DeleteMessageDto deleteMessageDto){
-        try {
-            conversationService.deleteMessage(deleteMessageDto);
-            return ResponseEntity.status(200).body(new GeneralResponseDto("Message deleted"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to delete message"));
-        }
+        conversationService.deleteMessage(deleteMessageDto);
+        return ResponseEntity.status(200).body(new GeneralResponseDto("Message deleted"));
     }
 
     @DeleteMapping("/deleteConversation")
     public ResponseEntity<?> deleteConversations(@RequestBody ConversationNameDto conversationNameDto){
-        try {
-            conversationService.deleteUserConversation(conversationNameDto);
-            return ResponseEntity.status(200).body(new GeneralResponseDto("Conversation deleted"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to delete conversation"));
-        }
+        conversationService.deleteUserConversation(conversationNameDto);
+        return ResponseEntity.status(200).body(new GeneralResponseDto("Conversation deleted"));
     }
 
     /*@MessageMapping("/send/{conversationId}")

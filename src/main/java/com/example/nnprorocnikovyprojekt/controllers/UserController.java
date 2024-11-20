@@ -6,6 +6,7 @@ import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.services.EmailService;
 import com.example.nnprorocnikovyprojekt.services.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,32 +24,20 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto authRequest) {
-        try {
-            ExpirationDateDto expirationDateDto = userService.loginUser(authRequest);
-            return ResponseEntity.status(HttpStatus.OK).body(expirationDateDto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GeneralResponseDto("Invalid username password combination"));
-        }
+        ExpirationDateDto expirationDateDto = userService.loginUser(authRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(expirationDateDto);
     }
 
     @PostMapping("/verify2fa")
     public ResponseEntity<?> verify2Fa(@RequestBody VerificationDto verificationDto) {
-        try{
-            JwtTokenDto jwtTokenDto = userService.verify2FaAndGetJwtToken(verificationDto);
-            return ResponseEntity.status(HttpStatus.OK).body(jwtTokenDto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new GeneralResponseDto("Verification token is not valid"));
-        }
+        JwtTokenDto jwtTokenDto = userService.verify2FaAndGetJwtToken(verificationDto);
+        return ResponseEntity.status(HttpStatus.OK).body(jwtTokenDto);
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistrationDto registrationRequest){
-        try {
-            boolean userCreated = userService.registerUser(registrationRequest);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new GeneralResponseDto("User created"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to create user"));
-        }
+        boolean userCreated = userService.registerUser(registrationRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new GeneralResponseDto("User created"));
     }
 
     //TODO bude potreba
@@ -67,71 +56,43 @@ public class UserController {
     //TODO bude potreba?
     @PostMapping("/newPassword")
     public ResponseEntity<?> newPassword(@RequestBody NewPasswordDto resetPasswordRequest){
-        try {
-            userService.newPassword(resetPasswordRequest);
-            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Password reset"));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to get new password"));
-        }
+        userService.newPassword(resetPasswordRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Password reset"));
     }
 
     @PutMapping("/updateUser")
-    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto){
-        try {
-            UserDto userDto = userService.updateUser(updateUserDto);
-            return ResponseEntity.status(HttpStatus.OK).body(userDto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to update user"));
-        }
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto) throws JsonProcessingException {
+        UserDto userDto = userService.updateUser(updateUserDto);
+        return ResponseEntity.status(HttpStatus.OK).body(userDto);
     }
 
     @PostMapping("/addContact")
     public ResponseEntity<?> addContact(@RequestBody AddRemoveContactDto addRemoveContactDto) {
-        try {
-            userService.addContact(addRemoveContactDto);
-            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact added"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to add contact"));
-        }
+        userService.addContact(addRemoveContactDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact added"));
     }
 
     @PostMapping("/removeContact")
     public ResponseEntity<?> removeContact(@RequestBody AddRemoveContactDto addRemoveContactDto) {
-        try {
-            userService.removeContact(addRemoveContactDto);
-            return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact removed"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to remove contact"));
-        }
+        userService.removeContact(addRemoveContactDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact removed"));
     }
 
     @PostMapping("/listContacts")
     public ResponseEntity<?> listContacts(@RequestBody SearchUserDtoRequest searchUserDtoRequest) {
-        try {
-            UserPageResponseDto userPageResponseDto = userService.listContacts(searchUserDtoRequest);
-            return ResponseEntity.status(HttpStatus.OK).body(userPageResponseDto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to add contact"));
-        }
+        UserPageResponseDto userPageResponseDto = userService.listContacts(searchUserDtoRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(userPageResponseDto);
     }
 
     @GetMapping("/getCurrentUserProfile")
     public ResponseEntity<?> getCurrentUserProfile(){
-        try {
-            UserDto responseUserDto = userService.getUserData();
-            return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to retrieve user details"));
-        }
+        UserDto responseUserDto = userService.getUserData();
+        return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
     }
 
     @PostMapping("/searchUsers")
     public ResponseEntity<?> searchUsers(@RequestBody SearchUserDtoRequest searchUserDtoRequest){
-        try {
-            ContactPageResponseDto responseUserDto = userService.searchUsers(searchUserDtoRequest);
-            return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new GeneralResponseDto("Failed to retrieve users"));
-        }
+        ContactPageResponseDto responseUserDto = userService.searchUsers(searchUserDtoRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
     }
 }
