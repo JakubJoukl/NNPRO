@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles("test")
 @SpringBootTest
 class ConversationServiceTest {
     @Mock
@@ -42,6 +44,9 @@ class ConversationServiceTest {
 
     @Mock
     private ConversationRepository conversationRepository;
+
+    @Mock
+    private MessageService messageService;
 
     @Mock
     private ConversationUserRepository conversationUserRepository;
@@ -191,39 +196,43 @@ class ConversationServiceTest {
     }
 
     @Test
-    void removeUserFromConversation() {
+    void leaveConversation() {
         User user = getTestUser();
         Optional<Conversation> conversation = getTestConversation();
         ConversationUser conversationUser = new ConversationUser(user, conversation.get(), "klic", null, null);
-        conversation.get().getConversationUsers().add(conversationUser);
 
         LeaveConversationDto leaveConversationDto = new LeaveConversationDto();
         leaveConversationDto.setUsername(user.getUsername());
         leaveConversationDto.setConversationId(conversation.get().getConversationId());
 
         when(conversationRepository.getConversationByConversationId(conversation.get().getConversationId())).thenReturn(conversation);
-
+        when(conversationRepository.save(any())).thenReturn(null);
         conversationService.leaveFromConversation(leaveConversationDto);
     }
 
     @Test
     void deleteMessage() {
-
+        conversationService.setObjectMapper(objectMapper);
+        List<User> users = getCompleteTestUsers();
+        User user1 = users.get(0);
+        Message message1 = user1.getConversationUsers().get(0).getConversation().getMessages().get(0);
+        DeleteMessageDto deleteMessageDto = new DeleteMessageDto();
+        deleteMessageDto.setId(1);
+        when(userService.getUserFromContext()).thenReturn(user1);
+        when(messageService.getMessageById(1)).thenReturn(message1);
+        conversationService.deleteMessage(deleteMessageDto);
     }
 
     @Test
-    void testCreateConversation() {
-
-    }
-
-    @Test
-    void testRemoveUserFromConversation() {
-
-    }
-
-    @Test
-    void testLeaveConversation() {
-
+    void testDeleteUserConversation() {
+        conversationService.setObjectMapper(objectMapper);
+        List<User> users = getCompleteTestUsers();
+        ConversationNameDto conversationNameDto = new ConversationNameDto();
+        conversationNameDto.setName("Konverzace");
+        conversationNameDto.setId(1);
+        when(conversationRepository.getConversationByConversationId(1)).thenReturn(Optional.of(users.get(0).getConversationUsers().get(0).getConversation()));
+        when(userService.getUserFromContext()).thenReturn(users.get(0));
+        conversationService.deleteUserConversation(conversationNameDto);
     }
 
     private User getTestUser() {
@@ -286,22 +295,13 @@ class ConversationServiceTest {
     }
 
     private List<Message> createTestMessages(User user, Conversation conversation) {
-        String iv1 = "{\"0\":215,\"11\":138,\"1\":67,\"2\":206,\"3\":117,\"4\":65,\"5\":18,\"6\":83,\"7\":136,\"8\":11,\"9\":128,\"10\":159}";
-        Message message1 = new Message(user, conversation, "Message1", null, iv1);
-        message1.setMessageId(1);
+        Message message1 = getMessage(user, conversation);
 
-        String iv2 = "{{\"0\":214,\"11\":166,\"1\":235,\"2\":235,\"3\":45,\"4\":236,\"5\":192,\"6\":175,\"7\":74,\"8\":234,\"9\":230,\"10\":32}";
-        Message message2 = new Message(user, conversation, "Message2", null, iv2);
-        message1.setMessageId(2);
+        Message message2 = getMessage2(user, conversation);
 
-        String iv3 = "{\"0\":86,\"11\":176,\"1\":52,\"2\":106,\"3\":181,\"4\":242,\"5\":114,\"6\":99,\"7\":242,\"8\":162,\"9\":208,\"10\":149}";
-        Message message3 = new Message(user, conversation, "Message3", null, iv3);
-        message1.setMessageId(3);
+        Message message3 = getMessage3(user, conversation);
 
-        Instant validTo = Instant.from(LocalDateTime.of(2024, 11, 16, 0, 0).atOffset(ZoneOffset.UTC));
-        String iv4 = "{\"0\":10,\"11\":10,\"1\":104,\"2\":124,\"3\":12,\"4\":177,\"5\":50,\"6\":167,\"7\":1,\"8\":6,\"9\":52,\"10\":56}";
-        Message message4 = new Message(user, conversation, "Message4", validTo, iv4);
-        message1.setMessageId(4);
+        Message message4 = getMessage4(user, conversation);
 
         List<Message> messages = new ArrayList<>();
         messages.add(message1);
@@ -309,5 +309,34 @@ class ConversationServiceTest {
         messages.add(message3);
         messages.add(message4);
         return messages;
+    }
+
+    private Message getMessage4(User user, Conversation conversation) {
+        Instant validTo = Instant.from(LocalDateTime.of(2024, 11, 16, 0, 0).atOffset(ZoneOffset.UTC));
+        String iv4 = "{\"0\":10,\"11\":10,\"1\":104,\"2\":124,\"3\":12,\"4\":177,\"5\":50,\"6\":167,\"7\":1,\"8\":6,\"9\":52,\"10\":56}";
+        Message message4 = new Message(user, conversation, "Message4", validTo, iv4);
+        message4.setMessageId(4);
+        return message4;
+    }
+
+    private Message getMessage3(User user, Conversation conversation) {
+        String iv3 = "{\"0\":86,\"11\":176,\"1\":52,\"2\":106,\"3\":181,\"4\":242,\"5\":114,\"6\":99,\"7\":242,\"8\":162,\"9\":208,\"10\":149}";
+        Message message3 = new Message(user, conversation, "Message3", null, iv3);
+        message3.setMessageId(3);
+        return message3;
+    }
+
+    private Message getMessage2(User user, Conversation conversation) {
+        String iv2 = "{\"0\":214,\"11\":166,\"1\":235,\"2\":235,\"3\":45,\"4\":236,\"5\":192,\"6\":175,\"7\":74,\"8\":234,\"9\":230,\"10\":32}";
+        Message message2 = new Message(user, conversation, "Message2", null, iv2);
+        message2.setMessageId(2);
+        return message2;
+    }
+
+    private Message getMessage(User user, Conversation conversation) {
+        String iv1 = "{\"0\":244,\"11\":227,\"1\":117,\"2\":98,\"3\":164,\"4\":191,\"5\":223,\"6\":44,\"7\":254,\"8\":1,\"9\":83,\"10\":159}";
+        Message message1 = new Message(user, conversation, "Message1", null, iv1);
+        message1.setMessageId(1);
+        return message1;
     }
 }

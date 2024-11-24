@@ -116,7 +116,7 @@ public class ConversationService {
 
 
     //realne jen pro druheho uzivatele
-    private void notifyOtherConversationParties(User originator, Conversation conversation){
+    public void notifyOtherConversationParties(User originator, Conversation conversation){
         List<User> usersToNotify = getUsersExceptCreator(conversation, originator);
         usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/deleteConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation)));
     }
