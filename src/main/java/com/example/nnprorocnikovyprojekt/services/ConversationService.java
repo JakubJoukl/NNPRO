@@ -191,7 +191,7 @@ public class ConversationService {
         return convertConversationToConversationNameDto(returnedConversation);
     }
 
-    public void removeUserFromConversation(LeaveConversationDto leaveConversationDto) {
+    public void leaveFromConversation(LeaveConversationDto leaveConversationDto) {
         //TODO nebo pouzijeme boolean s neaktivnimi usery?
         Conversation conversation = getConversationById(leaveConversationDto.getConversationId());
         int sizeBeforeRemove = conversation.getConversationUsers().size();

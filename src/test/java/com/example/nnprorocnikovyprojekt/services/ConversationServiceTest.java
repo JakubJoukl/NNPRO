@@ -203,7 +203,27 @@ class ConversationServiceTest {
 
         when(conversationRepository.getConversationByConversationId(conversation.get().getConversationId())).thenReturn(conversation);
 
-        conversationService.removeUserFromConversation(leaveConversationDto);
+        conversationService.leaveFromConversation(leaveConversationDto);
+    }
+
+    @Test
+    void deleteMessage() {
+
+    }
+
+    @Test
+    void testCreateConversation() {
+
+    }
+
+    @Test
+    void testRemoveUserFromConversation() {
+
+    }
+
+    @Test
+    void testLeaveConversation() {
+
     }
 
     private User getTestUser() {
@@ -219,6 +239,19 @@ class ConversationServiceTest {
         return user;
     }
 
+    private User getTestUser2() {
+        String username = "Druhy uzivatel";
+        String password = "Zasifrovane heslo2";
+        String email = "druhy@uzivatel.cz";
+        User user = new User(username, password, email);
+
+        String keyValue = "{\"crv\":\"P-521\",\"ext\":true,\"kty\":\"EC\",\"keyOps\":null,\"x\":\"AUmVOV24lL1TYr5Opok7--_uXwJVf8cLwp0cPrUEUWVQTqji6dioEJN-ejrPJ9-XVOAFhZpYwstHGWL4JR6ybmSp\",\"y\":\"ANx2hgmdAtPgAVt3GzETSH2x0yFHTpVM8K6qeGP0GrStWmRAOQ6EiyO3ZJFnTlypG_Qf6OitmhmIi24bilJ__pyO\"}";
+        Instant creationDate = Instant.from(LocalDateTime.of(2024, 11, 22, 0, 0).atOffset(ZoneOffset.UTC));
+        boolean valid = true;
+        user.getPublicKeys().add(new PublicKey(keyValue, creationDate, valid, user));
+        return user;
+    }
+
     private Optional<Conversation> getTestConversation() {
         Conversation conversation = new Conversation();
         String conversationName = "Konverzace";
@@ -228,5 +261,53 @@ class ConversationServiceTest {
         conversation.setConversationId(conversationId);
         Optional<Conversation> conversationOptional = Optional.of(conversation);
         return conversationOptional;
+    }
+
+    private List<User> getCompleteTestUsers(){
+        List<User> users = new ArrayList<>();
+        User user1 = getTestUser();
+        User user2 = getTestUser2();
+        users.add(user1);
+        users.add(user2);
+
+        Conversation conversation = getTestConversation().get();
+        List<Message> messages = createTestMessages(user1, conversation);
+        conversation.getMessages().addAll(messages);
+
+        //conversationUser zajistuje sve pridani do konverzaci a useru...
+        String encryptedSymmetricKey1 = "esI0rgLrX77V8oBul4M1bK6mr+oMlv1c2NZm0qvGvHNMt01Dppbvi3treixtH2s2";
+        String iv1 = "{\"0\":215,\"11\":138,\"1\":67,\"2\":206,\"3\":117,\"4\":65,\"5\":18,\"6\":83,\"7\":136,\"8\":11,\"9\":128,\"10\":159}";
+        ConversationUser conversationUser = new ConversationUser(user1, conversation, encryptedSymmetricKey1, user1.getActivePublicKey().get().getKeyValue(), iv1);
+
+        String encryptedSymmetricKey2 = "eL/CQBPB2821pyX2g1FyDoqufCoC0qHtKAsLbq3CsvEgM6F4CGzoxQD7WpX2h5/i";
+        String iv2 = "{\"0\":88,\"11\":135,\"1\":36,\"2\":241,\"3\":32,\"4\":173,\"5\":245,\"6\":18,\"7\":200,\"8\":107,\"9\":227,\"10\":223}";
+        ConversationUser conversationUser2 = new ConversationUser(user2, conversation, encryptedSymmetricKey2, user2.getActivePublicKey().get().getKeyValue(), iv2);
+        return users;
+    }
+
+    private List<Message> createTestMessages(User user, Conversation conversation) {
+        String iv1 = "{\"0\":215,\"11\":138,\"1\":67,\"2\":206,\"3\":117,\"4\":65,\"5\":18,\"6\":83,\"7\":136,\"8\":11,\"9\":128,\"10\":159}";
+        Message message1 = new Message(user, conversation, "Message1", null, iv1);
+        message1.setMessageId(1);
+
+        String iv2 = "{{\"0\":214,\"11\":166,\"1\":235,\"2\":235,\"3\":45,\"4\":236,\"5\":192,\"6\":175,\"7\":74,\"8\":234,\"9\":230,\"10\":32}";
+        Message message2 = new Message(user, conversation, "Message2", null, iv2);
+        message1.setMessageId(2);
+
+        String iv3 = "{\"0\":86,\"11\":176,\"1\":52,\"2\":106,\"3\":181,\"4\":242,\"5\":114,\"6\":99,\"7\":242,\"8\":162,\"9\":208,\"10\":149}";
+        Message message3 = new Message(user, conversation, "Message3", null, iv3);
+        message1.setMessageId(3);
+
+        Instant validTo = Instant.from(LocalDateTime.of(2024, 11, 16, 0, 0).atOffset(ZoneOffset.UTC));
+        String iv4 = "{\"0\":10,\"11\":10,\"1\":104,\"2\":124,\"3\":12,\"4\":177,\"5\":50,\"6\":167,\"7\":1,\"8\":6,\"9\":52,\"10\":56}";
+        Message message4 = new Message(user, conversation, "Message4", validTo, iv4);
+        message1.setMessageId(4);
+
+        List<Message> messages = new ArrayList<>();
+        messages.add(message1);
+        messages.add(message2);
+        messages.add(message3);
+        messages.add(message4);
+        return messages;
     }
 }

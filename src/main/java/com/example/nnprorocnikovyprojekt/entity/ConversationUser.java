@@ -36,7 +36,7 @@ public class ConversationUser {
     @NotNull
     private boolean isActive;
 
-    public ConversationUser() {
+    protected ConversationUser() {
     }
 
     public ConversationUser(User user, Conversation conversation, String encryptedSymmetricKey, String cipheringPublicKey, String initiationVector) {
@@ -47,6 +47,8 @@ public class ConversationUser {
         this.encryptedSymmetricKey = encryptedSymmetricKey;
         this.cipheringPublicKey = cipheringPublicKey;
         this.initiationVector = initiationVector;
+        user.getConversationUsers().add(this);
+        conversation.getConversationUsers().add(this);
     }
 
     public ConversationUserId getConversationUserId() {
