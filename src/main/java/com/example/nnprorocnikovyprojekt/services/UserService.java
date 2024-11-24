@@ -2,9 +2,10 @@ package com.example.nnprorocnikovyprojekt.services;
 
 
 import com.example.nnprorocnikovyprojekt.Utility.Utils;
+import com.example.nnprorocnikovyprojekt.advice.exceptions.NotFoundException;
+import com.example.nnprorocnikovyprojekt.advice.exceptions.UnauthorizedException;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
-import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.*;
 import com.example.nnprorocnikovyprojekt.external.CaptchaService;
@@ -35,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -96,7 +96,7 @@ public class UserService implements UserDetailsService {
     public void newPassword(NewPasswordDto resetPasswordRequest){
         ResetToken resetToken = getResetTokenByValue(resetPasswordRequest.getToken());
 
-        if(resetToken == null) throw new RuntimeException("Reset token was not found");
+        if(resetToken == null) throw new UnauthorizedException("Reset token was not found");
 
         boolean resetTokenIsValid = resetToken.isValid() && Instant.now().isBefore(resetToken.getExpirationDate());
         if(resetTokenIsValid){
@@ -128,7 +128,7 @@ public class UserService implements UserDetailsService {
     public boolean registerUser(RegistrationDto registrationRequest) {
         boolean captchaIsValid = captchaService.validateCaptcha(registrationRequest.getCaptchaToken());
         if(!captchaIsValid) {
-            throw new RuntimeException("Captcha is not valid");
+            throw new UnauthorizedException("Captcha is not valid");
         }
 
         boolean alreadyExists = userRepository.getUserByUsername(registrationRequest.getUsername()).isPresent();
@@ -202,7 +202,7 @@ public class UserService implements UserDetailsService {
     public UserDto updateUser(UpdateUserDto updateUserDto) throws JsonProcessingException {
         User user = getUserFromContext();
         if(!userPasswordMatches(updateUserDto.getConfirmationPassword(), user)) {
-            throw new RuntimeException("Password does not match");
+            throw new UnauthorizedException("Password does not match");
         }
         if(updateUserDto.getEmail() != null || updateUserDto.getPassword() != null || updateUserDto.getPublicKey() != null){
             if(updateUserDto.getEmail() != null) user.setEmail(updateUserDto.getEmail());
@@ -220,7 +220,7 @@ public class UserService implements UserDetailsService {
         User user = getUserFromContext();
         User contact = getUserByUsername(addRemoveContactDto.getUsername());
 
-        if(contact == null) throw new RuntimeException("Contact is null");
+        if(contact == null) throw new NotFoundException("Contact is null");
         if(user.getContacts().contains(contact)) throw new RuntimeException("User has already added this contact.");
 
         user.getContacts().add(contact);
@@ -303,7 +303,7 @@ public class UserService implements UserDetailsService {
     public JwtTokenDto verify2FaAndGetJwtToken(VerificationDto verificationDto) {
         boolean captchaIsValid = captchaService.validateCaptcha(verificationDto.getCaptchaToken());
         if(!captchaIsValid) {
-            throw new RuntimeException("Captcha is not valid");
+            throw new UnauthorizedException("Captcha is not valid");
         }
 
         boolean verificationCodeMatches = verifyVerificationCode(verificationDto.getUsername(), verificationDto.getVerificationCode());
@@ -314,14 +314,14 @@ public class UserService implements UserDetailsService {
             jwtTokenDto.setJwtToken(jwtToken);
             return jwtTokenDto;
         } else {
-            throw new RuntimeException("Verification code does not match");
+            throw new UnauthorizedException("Verification code does not match");
         }
     }
 
     public ExpirationDateDto loginUser(LoginDto authRequest) {
         boolean captchaIsValid = captchaService.validateCaptcha(authRequest.getCaptchaToken());
         if(!captchaIsValid) {
-            throw new RuntimeException("Captcha is not valid");
+            throw new UnauthorizedException("Captcha is not valid");
         }
 
         Authentication authentication = applicationContext.getBean(AuthenticationManager.class).authenticate(
@@ -339,7 +339,7 @@ public class UserService implements UserDetailsService {
                 throw new RuntimeException("Failed to send verification code");
             }
         } else {
-            throw new RuntimeException("Failed to authenticate user");
+            throw new UnauthorizedException("Failed to authenticate user");
         }
     }
 

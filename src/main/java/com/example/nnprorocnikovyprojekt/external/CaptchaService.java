@@ -1,5 +1,6 @@
 package com.example.nnprorocnikovyprojekt.external;
 
+import com.example.nnprorocnikovyprojekt.advice.exceptions.UnauthorizedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -24,7 +25,7 @@ public class CaptchaService {
                 String.class
         );
 
-        if(response == null) throw new RuntimeException("Failed to get response or the response is invalid");
+        if(response == null) throw new UnauthorizedException("Failed to get response or the response is invalid");
 
         return response.contains("\"success\": true");
     }

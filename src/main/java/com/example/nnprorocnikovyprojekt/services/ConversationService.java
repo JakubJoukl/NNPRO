@@ -1,5 +1,7 @@
 package com.example.nnprorocnikovyprojekt.services;
 
+import com.example.nnprorocnikovyprojekt.advice.exceptions.NotFoundException;
+import com.example.nnprorocnikovyprojekt.advice.exceptions.UnauthorizedException;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
@@ -74,7 +76,7 @@ public class ConversationService {
     public void sendMessageToAllSubscribers(Principal principal, MessageDto messageDto) {
         User user = userService.getUserByUsername(principal.getName());
 
-        if (user == null) throw new RuntimeException("User not found");
+        if (user == null) throw new UnauthorizedException("User not found");
 
         Conversation conversation = getConversationById(messageDto.getConversationId());
 
@@ -107,7 +109,7 @@ public class ConversationService {
     public void deleteMessage(DeleteMessageDto deleteMessageDto){
         User sender = userService.getUserFromContext();
         Message message = messageService.getMessageById(deleteMessageDto.getId());
-        if(message.getSender() != sender) throw new RuntimeException("User is not the sender of this message");
+        if(message.getSender() != sender) throw new UnauthorizedException("User is not the sender of this message");
         messageService.deleteMessage(message);
         simpMessagingTemplate.convertAndSend("/topic/deleteMessage/" + message.getConversation().getConversationId(), convertMessageToMessageDto(message));
     }
@@ -121,10 +123,10 @@ public class ConversationService {
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
         User user = userService.getUserByUsername(addRemoveUserToConversationDto.getUser().getUsername());
-        if (user == null) throw new RuntimeException("User is null");
+        if (user == null) throw new NotFoundException("User is null");
 
         Conversation conversation = getConversationById(addRemoveUserToConversationDto.getConversationId());
-        if (conversation == null) throw new RuntimeException("Conversation is null");
+        if (conversation == null) throw new NotFoundException("Conversation is null");
 
         if (conversation.getConversationUsers().stream().map(ConversationUser::getUser).anyMatch(user1 -> user1.equals(user))) {
             throw new RuntimeException("User is already a member of this conversation");
@@ -160,7 +162,7 @@ public class ConversationService {
         Instant dateTo = getConversationMessagesDto.getTo();
         if (dateFrom == null) dateFrom = Instant.from(LocalDateTime.of(2000, 1, 1, 1, 1).atOffset(ZoneOffset.UTC));
         if (dateTo == null) dateTo = Instant.MAX;
-        if (conversation == null) throw new RuntimeException("Conversation is null");
+        if (conversation == null) throw new NotFoundException("Conversation is null");
 
         ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
         PageInfoDtoRequest pageInfoDtoRequest = getConversationMessagesDto.getPageInfo();
@@ -210,9 +212,9 @@ public class ConversationService {
     public void deleteUserConversation(ConversationNameDto conversationNameDto){
         User user = userService.getUserFromContext();
         Conversation conversation = getConversationById(conversationNameDto.getId());
-        if(conversation.getConversationUsers().size() > 2) throw new RuntimeException("Can not delete group conversation");
+        if(conversation.getConversationUsers().size() > 2) throw new UnauthorizedException("Can not delete group conversation");
         if(conversation.getConversationUsers().stream().noneMatch(conversationUser -> conversationUser.getUser().equals(user))){
-            throw new RuntimeException("User is not a part of this conversation");
+            throw new UnauthorizedException("User is not a part of this conversation");
         }
         deleteConversation(conversation);
         notifyOtherConversationParties(user, conversation);
@@ -318,7 +320,7 @@ public class ConversationService {
             publicKeyDtoAsString = objectMapper.writeValueAsString(cipheredSymmetricKeysDto.getCipheringPublicKey());
             initiationVectorAsString = objectMapper.writeValueAsString(cipheredSymmetricKeysDto.getIv());
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse public key to string");
+            throw new RuntimeException("Failed to parse public key as string");
         }
         return new ConversationUser(userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()), updatedConversation, cipheredSymmetricKeysDto.getEncryptedSymmetricKey(), publicKeyDtoAsString, initiationVectorAsString);
     }

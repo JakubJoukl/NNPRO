@@ -1,7 +1,8 @@
 package com.example.nnprorocnikovyprojekt.advice;
 
+import com.example.nnprorocnikovyprojekt.advice.exceptions.NotFoundException;
+import com.example.nnprorocnikovyprojekt.advice.exceptions.UnauthorizedException;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
-import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -19,8 +20,25 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<GeneralResponseDto> handleNotFoundException(NotFoundException ex, HttpServletRequest request) {
+        String errorText = logExceptionAndReturnErrorText(ex, request);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GeneralResponseDto(errorText));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<GeneralResponseDto> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
+        String errorText = logExceptionAndReturnErrorText(ex, request);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new GeneralResponseDto(errorText));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<GeneralResponseDto> handleAllExceptions(Exception ex, HttpServletRequest request) {
+        String errorText = logExceptionAndReturnErrorText(ex, request);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto(errorText));
+    }
+
+    private String logExceptionAndReturnErrorText(Exception ex, HttpServletRequest request) {
         String username = null;
         try {
             username = userService.getUserFromContext().getUsername();
@@ -34,10 +52,7 @@ public class GlobalExceptionHandler {
 
         logger.error("An exception occurred at " + requestURI + " using method " + method);
         logger.error("Client IP: " + clientIP + ", user: " + username);
-
-        return new ResponseEntity<>(
-                new GeneralResponseDto("An error occurred at " + requestURI + " using method " + method + ": " + ex.getMessage()),
-                HttpStatus.INTERNAL_SERVER_ERROR
-        );
+        String errorText = "An error occurred at " + requestURI + " using method " + method + ": " + ex.getMessage();
+        return errorText;
     }
 }

@@ -1,5 +1,6 @@
 package com.example.nnprorocnikovyprojekt.services;
 
+import com.example.nnprorocnikovyprojekt.advice.exceptions.UnauthorizedException;
 import com.example.nnprorocnikovyprojekt.entity.ResetToken;
 import com.example.nnprorocnikovyprojekt.entity.User;
 import com.example.nnprorocnikovyprojekt.entity.VerificationCode;
@@ -76,7 +77,7 @@ public class EmailService {
 
     @Transactional(rollbackFor = Exception.class)
     public VerificationCode sendVerificationCodeEmail(User user){
-        if(user == null) throw new RuntimeException("User is null");
+        if(user == null) throw new UnauthorizedException("User is null");
 
         Session session = initiateSession();
 
