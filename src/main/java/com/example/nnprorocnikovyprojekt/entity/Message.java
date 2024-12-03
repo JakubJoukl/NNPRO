@@ -17,6 +17,7 @@ public class Message {
     @JoinColumn(name="sender_id", nullable=false)
     private User sender;
 
+    @NotNull
     @Column(length = 10000)
     private String content;
 
@@ -27,6 +28,7 @@ public class Message {
     @Column
     private Instant validTo;
 
+    @NotNull
     @Column(length = 400)
     private String initiationVector;
 

@@ -1,8 +1,12 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
+import jakarta.validation.constraints.NotNull;
+
 public class AddRemoveUserToConversationDto {
+    @NotNull
     private Integer conversationId;
 
+    @NotNull
     private CipheredSymmetricKeysDto user;
 
     public Integer getConversationId() {

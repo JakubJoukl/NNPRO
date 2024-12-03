@@ -1,9 +1,14 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class CreateConversationDto {
+    @NotNull
+    @Pattern(regexp = "^[A-Za-z][A-Za-z0-9_ ]{7,29}$")
     private String name;
 
     private List<CipheredSymmetricKeysDto> users = new ArrayList<>();

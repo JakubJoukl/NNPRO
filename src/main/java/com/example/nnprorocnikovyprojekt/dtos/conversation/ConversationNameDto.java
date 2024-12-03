@@ -1,8 +1,12 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
+import jakarta.validation.constraints.NotNull;
+
 public class ConversationNameDto {
+    @NotNull
     private Integer id;
 
+    @NotNull
     private String name;
 
     public ConversationNameDto(Integer id, String name) {

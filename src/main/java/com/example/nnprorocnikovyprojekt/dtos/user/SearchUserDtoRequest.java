@@ -1,10 +1,13 @@
 package com.example.nnprorocnikovyprojekt.dtos.user;
 
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
+import jakarta.validation.constraints.NotNull;
 
 public class SearchUserDtoRequest {
+    @NotNull
     private PageInfoDtoRequest pageInfo;
 
+    @NotNull
     private String username;
 
     public PageInfoDtoRequest getPageInfo() {

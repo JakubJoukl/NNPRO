@@ -1,6 +1,9 @@
 package com.example.nnprorocnikovyprojekt.dtos.pageinfo;
 
+import jakarta.validation.constraints.NotNull;
+
 public class PageInfoRequestWrapper {
+    @NotNull
     private PageInfoDtoRequest pageInfo = new PageInfoDtoRequest();
 
     public Integer getPageSize() {

@@ -1,20 +1,29 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+
 import java.time.Instant;
 import java.util.HashMap;
 
 public class MessageDto {
 
+    @NotNull
     private Integer id;
 
+    @NotNull
     private Integer conversationId;
 
     private HashMap<String, Integer> iv = new HashMap<>();
 
+    @Pattern(regexp = "^[A-Za-z][A-Za-z0-9_ ]{7,29}$")
+    @NotNull
     private String sender;
 
+    @NotNull
     private String message;
 
+    @NotNull
     private Instant dateSend;
 
     private Instant validTo;

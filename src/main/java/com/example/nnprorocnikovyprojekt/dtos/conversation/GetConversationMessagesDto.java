@@ -1,13 +1,16 @@
 package com.example.nnprorocnikovyprojekt.dtos.conversation;
 
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 
 public class GetConversationMessagesDto {
+    @NotNull
     private PageInfoDtoRequest pageInfo;
     private Instant from;
     private Instant to;
+    @NotNull
     private Integer conversationId;
 
     public Instant getFrom() {
