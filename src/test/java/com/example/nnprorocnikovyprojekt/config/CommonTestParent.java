@@ -23,6 +23,7 @@ public class CommonTestParent {
         String password = "Zasifrovane heslo";
         String email = "franta@bu.cz";
         User user = new User(username, password, email);
+        user.setUserId(1);
 
         String keyValue = "{\"crv\":\"P-256\",\"ext\":true,\"kty\":\"EC\",\"keyOps\":null,\"x\":\"FOHS2BTBzSBnu7V0LDJYXt30rR08B1UGYR_O5fhAcnM\",\"y\":\"Wb0ZaxmFYct3vm61zkAGyk4JPXPc3bPp1-uAEEJbxBM\"}";
         Instant creationDate = Instant.from(LocalDateTime.of(2024, 11, 16, 0, 0).atOffset(ZoneOffset.UTC));
@@ -47,6 +48,7 @@ public class CommonTestParent {
         String password = "Zasifrovane heslo2";
         String email = "druhy@uzivatel.cz";
         User user = new User(username, password, email);
+        user.setUserId(2);
 
         String keyValue = "{\"crv\":\"P-521\",\"ext\":true,\"kty\":\"EC\",\"keyOps\":null,\"x\":\"AUmVOV24lL1TYr5Opok7--_uXwJVf8cLwp0cPrUEUWVQTqji6dioEJN-ejrPJ9-XVOAFhZpYwstHGWL4JR6ybmSp\",\"y\":\"ANx2hgmdAtPgAVt3GzETSH2x0yFHTpVM8K6qeGP0GrStWmRAOQ6EiyO3ZJFnTlypG_Qf6OitmhmIi24bilJ__pyO\"}";
         Instant creationDate = Instant.from(LocalDateTime.of(2024, 11, 22, 0, 0).atOffset(ZoneOffset.UTC));
@@ -60,6 +62,7 @@ public class CommonTestParent {
         String password = "Sifra2";
         String email = "treti@uzivatel.cz";
         User user = new User(username, password, email);
+        user.setUserId(3);
 
         String keyValue = "{\"crv\":\"P-521\",\"ext\":true,\"kty\":\"EC\",\"keyOps\":null,\"x\":\"AUmVOV24lL1TYr5Opok7--_uXwJVf8cLwp0cPrUEUWVQTqji6dioEJN-ejrPJ9-XVOAFhZpYwstHGWL4JR6ybmSp\",\"y\":\"ANx2hgmdAtPgAVt3GzETSH2x0yFHTpVM8K6qeGP0GrStWmRAOQ6EiyO3ZJFnTlypG_Qf6OitmhmIi24bilJ__pyO\"}";
         Instant creationDate = Instant.from(LocalDateTime.of(2024, 11, 22, 0, 0).atOffset(ZoneOffset.UTC));

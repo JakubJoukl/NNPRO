@@ -286,14 +286,18 @@ class UserServiceTest extends CommonTestParent {
     }
 
     @Test
-    void verify2FaAndGetJwtToken() {
-    }
-
-    @Test
-    void loginUser() {
-    }
-
-    @Test
     void removeContact() {
+        User user = getTestUser();
+        User user2 = user.getContacts().get(0);
+
+        AddRemoveContactDto addRemoveContactDto = new AddRemoveContactDto();
+        addRemoveContactDto.setUsername(user2.getUsername());
+
+        when(userRepository.getUserByUsername(addRemoveContactDto.getUsername())).thenReturn(Optional.of(user2));
+        when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
+
+        assertTrue(user.getContacts().contains(user2));
+        userService.removeContact(addRemoveContactDto);
+        assertFalse(user.getContacts().contains(user2));
     }
 }
