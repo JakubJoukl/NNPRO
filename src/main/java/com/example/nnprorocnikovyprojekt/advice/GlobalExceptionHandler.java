@@ -53,6 +53,7 @@ public class GlobalExceptionHandler {
         logger.error("An exception occurred at " + requestURI + " using method " + method);
         logger.error("Client IP: " + clientIP + ", user: " + username);
         String errorText = "An error occurred at " + requestURI + " using method " + method + ": " + ex.getMessage();
+        logger.error(errorText);
         return errorText;
     }
 }

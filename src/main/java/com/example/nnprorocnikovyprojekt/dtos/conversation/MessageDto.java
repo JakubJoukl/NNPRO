@@ -7,8 +7,6 @@ import java.time.Instant;
 import java.util.HashMap;
 
 public class MessageDto {
-
-    @NotNull
     private Integer id;
 
     @NotNull
@@ -23,7 +21,6 @@ public class MessageDto {
     @NotNull
     private String message;
 
-    @NotNull
     private Instant dateSend;
 
     private Instant validTo;

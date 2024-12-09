@@ -6,16 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 
 public class UpdateUserDto {
-    @Length(min = 12)
-    @NotNull
     private String confirmationPassword;
 
-    @Length(min = 12)
-    @NotNull
     private String password;
 
-    @Email(regexp = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
-    @NotNull
     private String email;
 
     private PublicKeyDto publicKey;
