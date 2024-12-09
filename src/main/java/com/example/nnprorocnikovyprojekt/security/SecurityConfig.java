@@ -59,6 +59,7 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
+                .requiresChannel(channelRequestMatcherRegistry -> channelRequestMatcherRegistry.anyRequest().requiresSecure())
                 /*.csrf(csrf -> csrf
                         // ignore our stomp endpoints since they are protected using Stomp headers
                         .ignoringRequestMatchers("/chat/**")
@@ -103,6 +104,7 @@ public class SecurityConfig {
 
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("https://localhost:5173");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
