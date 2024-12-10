@@ -200,12 +200,12 @@ class ConversationServiceTest extends CommonTestParent {
         ConversationUser conversationUser = new ConversationUser(user, conversation.get(), "klic", null, null);
 
         LeaveConversationDto leaveConversationDto = new LeaveConversationDto();
-        leaveConversationDto.setUsername(user.getUsername());
         leaveConversationDto.setConversationId(conversation.get().getConversationId());
 
         when(conversationRepository.getConversationByConversationId(conversation.get().getConversationId())).thenReturn(conversation);
         when(conversationRepository.save(any())).thenReturn(null);
-        conversationService.leaveFromConversation(leaveConversationDto);
+        conversationService.leaveFromConversation(leaveConversationDto, user);
+        //FIXME very useful test with lots of asserts
     }
 
     @Test
