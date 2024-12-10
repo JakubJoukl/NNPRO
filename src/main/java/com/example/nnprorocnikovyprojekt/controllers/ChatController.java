@@ -50,8 +50,8 @@ public class ChatController {
     }
 
     @DeleteMapping("/leaveConversation")
-    public ResponseEntity<?> removeUserFromConversation(@Valid @RequestBody LeaveConversationDto leaveConversationDto, @AuthenticationPrincipal UserDetails userDetails){
-        conversationService.leaveFromConversation(leaveConversationDto, userDetails);
+    public ResponseEntity<?> removeUserFromConversation(@Valid @RequestBody LeaveConversationDto leaveConversationDto){
+        conversationService.leaveFromConversation(leaveConversationDto);
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User left the conversation"));
     }
 

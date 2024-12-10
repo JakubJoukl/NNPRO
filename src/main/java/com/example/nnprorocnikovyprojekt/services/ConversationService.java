@@ -23,8 +23,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +30,7 @@ import java.security.Principal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,9 +117,15 @@ public class ConversationService {
 
 
     //realne jen pro druheho uzivatele
-    public void notifyOtherConversationParties(User originator, Conversation conversation){
+    public void notifyOtherConversationPartiesAboutDelete(User originator, Conversation conversation){
         List<User> usersToNotify = getUsersExceptCreator(conversation, originator);
         usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/deleteConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation)));
+    }
+
+    //realne jen pro
+    public void notifyOtherConversationPartiesAboutLeave(User originator, Conversation conversation){
+        List<User> usersToNotify = getUsersExceptCreator(conversation, originator);
+        usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/leaveConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation)));
     }
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
@@ -193,21 +198,31 @@ public class ConversationService {
         return convertConversationToConversationNameDto(returnedConversation);
     }
 
-    public void leaveFromConversation(LeaveConversationDto leaveConversationDto, @AuthenticationPrincipal UserDetails userDetails) {
+    public void leaveFromConversation(LeaveConversationDto leaveConversationDto) {
         //TODO nebo pouzijeme boolean s neaktivnimi usery?
+        User user = userService.getUserFromContext();
         Conversation conversation = getConversationById(leaveConversationDto.getConversationId());
         int sizeBeforeRemove = conversation.getConversationUsers().size();
-        conversation.getConversationUsers().removeIf(conversationUser -> conversationUser.getUser().getUsername().equals(userDetails.getUsername()));
-        doRemoveUserAndCloseOrphanConversation(conversation, sizeBeforeRemove);
+        List<ConversationUser> conversationUsersToRemove = new ArrayList<>();
+        conversation.getConversationUsers().removeIf(conversationUser -> {
+            boolean remove = conversationUser.getUser().getUsername().equals(user.getUsername());
+            if(remove) conversationUsersToRemove.add(conversationUser);
+            return remove;
+        });
+        doRemoveUserAndCloseOrphanConversation(user, conversation, conversationUsersToRemove, sizeBeforeRemove);
     }
 
-    private void doRemoveUserAndCloseOrphanConversation(Conversation conversation, int sizeBeforeRemove) {
+    @Transactional(rollbackFor = Exception.class)
+    private void doRemoveUserAndCloseOrphanConversation(User user, Conversation conversation, List<ConversationUser> conversationUsersToRemove, int sizeBeforeRemove) {
+        conversationUserRepository.deleteAll(conversationUsersToRemove);
         saveConversation(conversation);
         if (sizeBeforeRemove != conversation.getConversationUsers().size() + 1) {
             throw new RuntimeException("Exactly 1 element was supposed to be deleted");
         }
+        notifyOtherConversationPartiesAboutLeave(user, conversation);
         if(conversation.getConversationUsers().size() <= 1) {
             deleteConversation(conversation);
+            notifyOtherConversationPartiesAboutDelete(user, conversation);
         }
     }
 
@@ -219,7 +234,7 @@ public class ConversationService {
             throw new UnauthorizedException("User is not a part of this conversation");
         }
         deleteConversation(conversation);
-        notifyOtherConversationParties(user, conversation);
+        notifyOtherConversationPartiesAboutDelete(user, conversation);
     }
 
     @Transactional(rollbackFor = Exception.class)
