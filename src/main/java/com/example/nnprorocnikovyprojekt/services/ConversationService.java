@@ -206,7 +206,7 @@ public class ConversationService {
         if (sizeBeforeRemove != conversation.getConversationUsers().size() + 1) {
             throw new RuntimeException("Exactly 1 element was supposed to be deleted");
         }
-        if(conversation.getConversationUsers().size() == 0) {
+        if(conversation.getConversationUsers().size() <= 1) {
             deleteConversation(conversation);
         }
     }

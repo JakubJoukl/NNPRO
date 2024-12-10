@@ -163,6 +163,7 @@ class ConversationServiceTest extends CommonTestParent {
         when(userService.getUserFromContext()).thenReturn(user);
 
         conversationService.getConversationMessagesDtoResponse(getConversationMessagesDto);
+        //TODO FIX
     }
 
     @Test
@@ -195,17 +196,21 @@ class ConversationServiceTest extends CommonTestParent {
 
     @Test
     void leaveConversation() {
-        User user = getTestUser();
-        Optional<Conversation> conversation = getTestConversation();
-        ConversationUser conversationUser = new ConversationUser(user, conversation.get(), "klic", null, null);
+        User user = getCompleteTestUsers().get(0);
+        Optional<Conversation> conversation = Optional.of(user.getConversationUsers().get(0).getConversation());
+        ConversationUser conversationUser = conversation.get().getConversationUserByUsername(user.getUsername());
 
         LeaveConversationDto leaveConversationDto = new LeaveConversationDto();
         leaveConversationDto.setConversationId(conversation.get().getConversationId());
 
         when(conversationRepository.getConversationByConversationId(conversation.get().getConversationId())).thenReturn(conversation);
-        when(conversationRepository.save(any())).thenReturn(null);
+        when(conversationRepository.save(any())).then(invocationOnMock -> {
+                    conversation.get().getConversationUsers().remove(conversationUser);
+                    return conversation.get();
+                }
+        );
         conversationService.leaveFromConversation(leaveConversationDto, user);
-        //FIXME very useful test with lots of asserts
+        assertFalse(conversation.get().getConversationUsers().contains(conversationUser));
     }
 
     @Test
@@ -219,6 +224,7 @@ class ConversationServiceTest extends CommonTestParent {
         when(userService.getUserFromContext()).thenReturn(user1);
         when(messageService.getMessageById(1)).thenReturn(message1);
         conversationService.deleteMessage(deleteMessageDto);
+        //TODO FIX
     }
 
     @Test
@@ -231,5 +237,6 @@ class ConversationServiceTest extends CommonTestParent {
         when(conversationRepository.getConversationByConversationId(1)).thenReturn(Optional.of(users.get(0).getConversationUsers().get(0).getConversation()));
         when(userService.getUserFromContext()).thenReturn(users.get(0));
         conversationService.deleteUserConversation(conversationNameDto);
+        //TODO FIX
     }
 }
