@@ -79,9 +79,7 @@ class ConversationServiceTest extends CommonTestParent {
         Optional<Conversation> conversationOptional = getTestConversation();
         User user = getTestUser();
         AddRemoveUserToConversationDto addRemoveUserToConversationDto = new AddRemoveUserToConversationDto();
-        CipheredSymmetricKeysDto cipheredSymmetricKeysDto = new CipheredSymmetricKeysDto();
-        cipheredSymmetricKeysDto.setUsername(user.getUsername());
-        addRemoveUserToConversationDto.setUser(cipheredSymmetricKeysDto);
+        addRemoveUserToConversationDto.setUser(user.getUsername());
         addRemoveUserToConversationDto.setConversationId(conversationOptional.get().getConversationId());
 
         when(conversationRepository.getConversationByConversationId(1)).thenReturn(conversationOptional);
@@ -89,12 +87,12 @@ class ConversationServiceTest extends CommonTestParent {
         PublicKeyDto expectedResponse = objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class);
 
         AddUserToConversationResponse addUserToConversationResponse = conversationService.addUserToConversation(addRemoveUserToConversationDto);
-        assertEquals(expectedResponse.getCrv(), addUserToConversationResponse.getPublicKey().getCrv());
-        assertEquals(expectedResponse.getExt(), addUserToConversationResponse.getPublicKey().getExt());
-        assertNull(addUserToConversationResponse.getPublicKey().getKeyOps());
-        assertEquals(expectedResponse.getKty(), addUserToConversationResponse.getPublicKey().getKty());
-        assertEquals(expectedResponse.getX(), addUserToConversationResponse.getPublicKey().getX());
-        assertEquals(expectedResponse.getY(), addUserToConversationResponse.getPublicKey().getY());
+        assertEquals(expectedResponse.getCrv(), addUserToConversationResponse.getCipheringPublicKey().getCrv());
+        assertEquals(expectedResponse.getExt(), addUserToConversationResponse.getCipheringPublicKey().getExt());
+        assertNull(addUserToConversationResponse.getCipheringPublicKey().getKeyOps());
+        assertEquals(expectedResponse.getKty(), addUserToConversationResponse.getCipheringPublicKey().getKty());
+        assertEquals(expectedResponse.getX(), addUserToConversationResponse.getCipheringPublicKey().getX());
+        assertEquals(expectedResponse.getY(), addUserToConversationResponse.getCipheringPublicKey().getY());
     }
 
     @Test

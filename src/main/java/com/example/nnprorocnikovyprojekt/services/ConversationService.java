@@ -93,16 +93,30 @@ public class ConversationService {
         simpMessagingTemplate.convertAndSend("/topic/addMessage/" + conversation.getConversationId(), convertMessageToMessageDto(message));
     }
 
-    public void notifyUsersAboutNewConversationExceptCreator(Conversation conversation, User creator) {
-        List<User> usersToNotify = getUsersExceptCreator(conversation, creator);
+    public void notifyUsersAboutNewConversationExceptUser(Conversation conversation, User creator) {
+        List<User> usersToNotify = getUsersExceptUser(conversation, creator);
 
-        usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/newConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation)));
+        usersToNotify.forEach(user -> notifyUserAboutNewConversation(conversation, user));
     }
 
-    private List<User> getUsersExceptCreator(Conversation conversation, User creator) {
+    public void notifyUsersAboutNewMemberExceptUser(Conversation conversation, User exceptWhom, AddRemoveUserToConversationDto addRemoveUserToConversationDto) {
+        List<User> usersToNotify = getUsersExceptUser(conversation, exceptWhom);
+
+        usersToNotify.forEach(user -> notifyUserAboutNewUser(conversation, user, addRemoveUserToConversationDto));
+    }
+
+    public void notifyUserAboutNewConversation(Conversation conversation, User user){
+        simpMessagingTemplate.convertAndSend("/topic/newConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation));
+    }
+
+    public void notifyUserAboutNewUser(Conversation conversation, User user, AddRemoveUserToConversationDto addRemoveUserToConversationDto){
+        simpMessagingTemplate.convertAndSend("/topic/newUser/" + user.getUsername(), addRemoveUserToConversationDto);
+    }
+
+    private List<User> getUsersExceptUser(Conversation conversation, User exceptWhom) {
         List<User> usersToNotify = conversation.getConversationUsers().stream()
                 .map(ConversationUser::getUser)
-                .filter(user -> !user.equals(creator))
+                .filter(user -> !user.equals(exceptWhom))
                 .collect(Collectors.toList());
         return usersToNotify;
     }
@@ -118,18 +132,18 @@ public class ConversationService {
 
     //realne jen pro druheho uzivatele
     public void notifyOtherConversationPartiesAboutDelete(User originator, Conversation conversation){
-        List<User> usersToNotify = getUsersExceptCreator(conversation, originator);
+        List<User> usersToNotify = getUsersExceptUser(conversation, originator);
         usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/deleteConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation)));
     }
 
     //realne jen pro
     public void notifyOtherConversationPartiesAboutLeave(User originator, Conversation conversation){
-        List<User> usersToNotify = getUsersExceptCreator(conversation, originator);
+        List<User> usersToNotify = getUsersExceptUser(conversation, originator);
         usersToNotify.forEach(user -> simpMessagingTemplate.convertAndSend("/topic/leaveConversation/" + user.getUsername(), convertConversationToConversationNameDto(conversation)));
     }
 
     public AddUserToConversationResponse addUserToConversation(AddRemoveUserToConversationDto addRemoveUserToConversationDto) throws JsonProcessingException {
-        User user = userService.getUserByUsername(addRemoveUserToConversationDto.getUser().getUsername());
+        User user = userService.getUserByUsername(addRemoveUserToConversationDto.getUser());
         if (user == null) throw new NotFoundException("User is null");
 
         Conversation conversation = getConversationById(addRemoveUserToConversationDto.getConversationId());
@@ -139,13 +153,17 @@ public class ConversationService {
             throw new RuntimeException("User is already a member of this conversation");
         }
 
-        ConversationUser conversationUser = getConversationUserFromCipheredSymmetricKeyDto(conversation, addRemoveUserToConversationDto.getUser());
-        saveConversationUser(conversationUser);
+        ConversationUser conversationUser = getConversationUserFromCipheredSymmetricKeyDto(conversation, addRemoveUserToConversationDto);
+        conversation.getConversationUsers().add(conversationUser);
+        saveConversation(conversation);
+        notifyUserAboutNewConversation(conversation, user);
+        notifyUsersAboutNewMemberExceptUser(conversation, user, addRemoveUserToConversationDto);
         if (user.getActivePublicKey().orElse(null) == null) return new AddUserToConversationResponse();
         else
             return new AddUserToConversationResponse(objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class));
     }
 
+    //Nefunguje a ani nemůže :(
     @Transactional(rollbackFor = Exception.class)
     public ConversationUser saveConversationUser(ConversationUser conversationUser) {
         return conversationUserRepository.save(conversationUser);
@@ -194,7 +212,7 @@ public class ConversationService {
         Conversation returnedConversation = conversationRepository.save(updatedConversation);
 
         User creator = userService.getUserFromContext();
-        notifyUsersAboutNewConversationExceptCreator(conversation, creator);
+        notifyUsersAboutNewConversationExceptUser(conversation, creator);
         return convertConversationToConversationNameDto(returnedConversation);
     }
 
