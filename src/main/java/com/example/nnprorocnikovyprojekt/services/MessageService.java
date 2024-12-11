@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.List;
+
 @Service
 public class MessageService {
 
@@ -26,5 +29,12 @@ public class MessageService {
     @Transactional(rollbackFor = Exception.class)
     public Message getMessageById(Integer messageId) {
         return messageRepository.getMessageByMessageId(messageId);
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteExpiredMessages() {
+        List<Message> messages = messageRepository.getMessagesByValidToBefore(Instant.now());
+        messageRepository.deleteAll(messages);
     }
 }

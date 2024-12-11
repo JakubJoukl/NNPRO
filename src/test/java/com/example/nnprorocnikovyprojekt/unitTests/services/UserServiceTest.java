@@ -1,4 +1,4 @@
-package com.example.nnprorocnikovyprojekt.services;
+package com.example.nnprorocnikovyprojekt.unitTests.services;
 
 import com.example.nnprorocnikovyprojekt.config.CommonTestParent;
 import com.example.nnprorocnikovyprojekt.config.WithCustomUser;
@@ -7,17 +7,17 @@ import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.*;
 import com.example.nnprorocnikovyprojekt.external.CaptchaService;
 import com.example.nnprorocnikovyprojekt.repositories.*;
+import com.example.nnprorocnikovyprojekt.services.ConversationService;
+import com.example.nnprorocnikovyprojekt.services.MessageService;
+import com.example.nnprorocnikovyprojekt.services.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;

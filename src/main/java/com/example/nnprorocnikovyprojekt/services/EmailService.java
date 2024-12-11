@@ -18,6 +18,7 @@ import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.security.GeneralSecurityException;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
@@ -41,7 +42,7 @@ public class EmailService {
     @Autowired
     private UserService userService;
 
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MMM.yyyy HH:mm");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     Properties properties = System.getProperties();
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
@@ -110,7 +111,6 @@ public class EmailService {
         return session;
     }
 
-    @Async
     @Transactional(rollbackFor = Exception.class)
     public void sendResetTokenEmail(User user)  {
         if(user == null) throw new RuntimeException("User is null");
@@ -123,7 +123,7 @@ public class EmailService {
             ResetToken resetToken = userService.generateResetTokenForUser(user);
 
             String subject = "Test email reset hesla pro " + user.getEmail();
-            String emailHtmlContent = "<h1>Reset hesla</h1><p>Token pro reset hesla je " + resetToken.getToken() + " a platí do " + formatter.format(resetToken.getExpirationDate()) + "</p>";
+            String emailHtmlContent = "<h1>Reset hesla</h1><p>Token pro reset hesla je " + resetToken.getToken() + " a platí do " + formatter.format(resetToken.getExpirationDate().atOffset(ZoneOffset.UTC)) + "</p>";
 
             emailServiceAsync.sendEmail(message, user.getEmail(), subject, emailHtmlContent);
         } catch (MessagingException mex) {

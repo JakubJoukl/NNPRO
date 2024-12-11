@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "USER")
@@ -23,12 +24,12 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userId;
 
-    @Column
+    @Column(unique = true)
     @Pattern(regexp = "^[A-Za-z][A-Za-z0-9_ ]{7,29}$")
     @NotNull
     private String username;
 
-    @Column
+    @Column(unique = true)
     @Email(regexp = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
     @NotNull
     private String email;
@@ -113,6 +114,10 @@ public class User implements UserDetails {
         return resetTokens;
     }
 
+    public ResetToken getActiveResetToken() {
+        return resetTokens.stream().filter(ResetToken::isValid).findFirst().orElse(null);
+    }
+
     public void setResetTokens(List<ResetToken> resetTokens) {
         this.resetTokens = resetTokens;
     }
@@ -135,6 +140,10 @@ public class User implements UserDetails {
 
     public List<VerificationCode> getVerificationCodes() {
         return verificationCodes;
+    }
+
+    public VerificationCode getActiveVerificationCode() {
+        return verificationCodes.stream().filter(VerificationCode::isValid).findFirst().orElse(null);
     }
 
     public void setVerificationCodes(List<VerificationCode> verificationCodes) {

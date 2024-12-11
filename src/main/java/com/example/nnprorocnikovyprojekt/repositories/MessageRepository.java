@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
+import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Integer> {
     @Query("    SELECT m \n" +
@@ -20,4 +21,6 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
     Page<Message> getMessageByConversationBetweenDatesValidTo(Pageable pageable, Conversation conversation, Instant from, Instant to, Instant validTo, ConversationUser conversationUser);
 
     Message getMessageByMessageId(Integer messageId);
+
+    public List<Message> getMessagesByValidToBefore(Instant now);
 }

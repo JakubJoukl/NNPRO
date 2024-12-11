@@ -1,4 +1,4 @@
-package com.example.nnprorocnikovyprojekt.services;
+package com.example.nnprorocnikovyprojekt.unitTests.services;
 
 import com.example.nnprorocnikovyprojekt.config.CommonTestParent;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
@@ -9,18 +9,17 @@ import com.example.nnprorocnikovyprojekt.entity.*;
 import com.example.nnprorocnikovyprojekt.repositories.ConversationRepository;
 import com.example.nnprorocnikovyprojekt.repositories.ConversationUserRepository;
 import com.example.nnprorocnikovyprojekt.repositories.MessageRepository;
+import com.example.nnprorocnikovyprojekt.services.ConversationService;
+import com.example.nnprorocnikovyprojekt.services.MessageService;
+import com.example.nnprorocnikovyprojekt.services.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -87,12 +86,12 @@ class ConversationServiceTest extends CommonTestParent {
         PublicKeyDto expectedResponse = objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class);
 
         AddUserToConversationResponse addUserToConversationResponse = conversationService.addUserToConversation(addRemoveUserToConversationDto);
-        assertEquals(expectedResponse.getCrv(), addUserToConversationResponse.getCipheringPublicKey().getCrv());
-        assertEquals(expectedResponse.getExt(), addUserToConversationResponse.getCipheringPublicKey().getExt());
-        assertNull(addUserToConversationResponse.getCipheringPublicKey().getKeyOps());
-        assertEquals(expectedResponse.getKty(), addUserToConversationResponse.getCipheringPublicKey().getKty());
-        assertEquals(expectedResponse.getX(), addUserToConversationResponse.getCipheringPublicKey().getX());
-        assertEquals(expectedResponse.getY(), addUserToConversationResponse.getCipheringPublicKey().getY());
+        assertEquals(expectedResponse.getCrv(), addUserToConversationResponse.getPublicKey().getCrv());
+        assertEquals(expectedResponse.getExt(), addUserToConversationResponse.getPublicKey().getExt());
+        assertNull(addUserToConversationResponse.getPublicKey().getKeyOps());
+        assertEquals(expectedResponse.getKty(), addUserToConversationResponse.getPublicKey().getKty());
+        assertEquals(expectedResponse.getX(), addUserToConversationResponse.getPublicKey().getX());
+        assertEquals(expectedResponse.getY(), addUserToConversationResponse.getPublicKey().getY());
     }
 
     @Test

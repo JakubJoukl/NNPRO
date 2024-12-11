@@ -75,6 +75,10 @@ public class UserService implements UserDetailsService {
     private SecureRandom secureRandom = new SecureRandom();
     private Integer RANDOM_BOUND = 999999;
 
+    public void setCaptchaService(CaptchaService captchaService){
+        this.captchaService = captchaService;
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.getUserByUsername(username).orElse(null);
