@@ -379,8 +379,17 @@ class ChatControllerTest {
     }
 
     @Test
-    void deleteConversation() {
+    void deleteConversation() throws Exception {
+        ConversationNameDto conversationNameDto = new ConversationNameDto();
+        conversationNameDto.setId(conversation1.getConversationId());
+        conversationNameDto.setName(conversation1.getConversationName());
 
+        String requestBody = objectMapper.writeValueAsString(conversationNameDto);
+
+        mockMvc.perform(delete("https://localhost:8080/deleteConversation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk());
     }
 
     public User getTestUser3() {
