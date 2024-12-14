@@ -252,7 +252,7 @@ class UserControllerTest {
         String requestBody = objectMapper.writeValueAsString(addRemoveContactDto);
 
         // Volání endpointu
-        mockMvc.perform(post("https://localhost:8080/removeContact")
+        mockMvc.perform(delete("https://localhost:8080/removeContact")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk());
