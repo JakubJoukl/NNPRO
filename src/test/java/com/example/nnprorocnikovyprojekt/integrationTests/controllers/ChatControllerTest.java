@@ -2,14 +2,16 @@ package com.example.nnprorocnikovyprojekt.integrationTests.controllers;
 
 import com.example.nnprorocnikovyprojekt.config.CommonTestParent;
 import com.example.nnprorocnikovyprojekt.config.WithCustomUser;
-import com.example.nnprorocnikovyprojekt.dtos.conversation.AddRemoveUserToConversationDto;
-import com.example.nnprorocnikovyprojekt.dtos.conversation.MessageDto;
+import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
+import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.LoginDto;
+import com.example.nnprorocnikovyprojekt.dtos.user.PublicKeyDto;
 import com.example.nnprorocnikovyprojekt.entity.*;
 import com.example.nnprorocnikovyprojekt.external.CaptchaService;
 import com.example.nnprorocnikovyprojekt.services.ConversationService;
+import com.example.nnprorocnikovyprojekt.services.MessageService;
 import com.example.nnprorocnikovyprojekt.services.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +20,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -49,14 +52,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -74,6 +73,9 @@ class ChatControllerTest {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MessageService messageService;
 
     @Autowired
     private ConversationService conversationService;
@@ -111,7 +113,7 @@ class ChatControllerTest {
         conversation1 = new Conversation();
         conversation1.setConversationName("Skupinova konverzace");*/
         //conversationService.addUserToConversation();
-        when(captchaService.validateCaptcha(any())).thenReturn(true);
+        when(captchaService.validateCaptcha(ArgumentMatchers.any())).thenReturn(true);
         List<User> users = getCompleteTestUsers();
         getTestUser3();
         //conversationUser zajistuje sve pridani do konverzaci a useru...
@@ -119,12 +121,10 @@ class ChatControllerTest {
         String encryptedSymmetricKey1 = "esI0rgLrX77V8oBul4M1bK6mr+oMlv1c2NZm0qvGvHNMt01Dppbvi3treixtH2s2";
         String iv1 = "{\"0\":215,\"11\":138,\"1\":67,\"2\":206,\"3\":117,\"4\":65,\"5\":18,\"6\":83,\"7\":136,\"8\":11,\"9\":128,\"10\":159}";
         ConversationUser conversationUser = new ConversationUser(testUser1, conversation1, encryptedSymmetricKey1, testUser1.getActivePublicKey().get().getKeyValue(), iv1);
-        conversation1.getConversationUsers().add(conversationUser);
 
         String encryptedSymmetricKey2 = "eL/CQBPB2821pyX2g1FyDoqufCoC0qHtKAsLbq3CsvEgM6F4CGzoxQD7WpX2h5/i";
         String iv2 = "{\"0\":88,\"11\":135,\"1\":36,\"2\":241,\"3\":32,\"4\":173,\"5\":245,\"6\":18,\"7\":200,\"8\":107,\"9\":227,\"10\":223}";
         ConversationUser conversationUser2 = new ConversationUser(testUser2, conversation1, encryptedSymmetricKey2, testUser2.getActivePublicKey().get().getKeyValue(), iv2);
-        conversation1.getConversationUsers().add(conversationUser2);
         conversation1 = conversationService.saveConversation(conversation1);
         testUser1 = userService.saveUser(testUser1);
         testUser2 = userService.saveUser(testUser2);
@@ -191,11 +191,14 @@ class ChatControllerTest {
 
     @Test
     void addUserToConversation() throws Exception {
-        /*AddRemoveUserToConversationDto addRemoveUserToConversationDto = new AddRemoveUserToConversationDto();
+        AddRemoveUserToConversationDto addRemoveUserToConversationDto = new AddRemoveUserToConversationDto();
         addRemoveUserToConversationDto.setUser(testUser3.getUsername());
         addRemoveUserToConversationDto.setConversationId(conversation1.getConversationId());
         addRemoveUserToConversationDto.setCipheringPublicKey(null);
         addRemoveUserToConversationDto.setEncryptedSymmetricKey(null);
+
+        PublicKey publicKey = testUser3.getActivePublicKey().get();
+        PublicKeyDto publicKeyDto = objectMapper.readValue(publicKey.getKeyValue(), PublicKeyDto.class);
 
         // Serializace do JSON
         String requestBody = objectMapper.writeValueAsString(addRemoveUserToConversationDto);
@@ -203,37 +206,180 @@ class ChatControllerTest {
         mockMvc.perform(post("https://localhost:8080/addUserToConversation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.itemList[0].id", is(conversation1.getConversationId())))
-                .andExpect(jsonPath("$.itemList[0].name", is(conversation1.getConversationName())));*/
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username", is(testUser3.getUsername())))
+                .andExpect(jsonPath("$.encryptedSymmetricKey", is(nullValue())))
+                .andExpect(jsonPath("$.cipheringPublicKey", is(nullValue())))
+                .andExpectAll(
+                        jsonPath("$.publicKey.crv", is(publicKeyDto.getCrv())),
+                        jsonPath("$.publicKey.ext", is(publicKeyDto.getExt())),
+                        jsonPath("$.publicKey.kty", is(publicKeyDto.getKty())),
+                        jsonPath("$.publicKey.x", is(publicKeyDto.getX())),
+                        jsonPath("$.publicKey.y", is(publicKeyDto.getY()))
+                );
+
+        assertNotNull(conversation1.getConversationUserByUsername(testUser3.getUsername()));
     }
 
     @Test
-    void removeUserFromConversation() {
+    void removeUserFromConversation() throws Exception {
+        LeaveConversationDto leaveConversationDto = new LeaveConversationDto();
+        leaveConversationDto.setConversationId(conversation1.getConversationId());
 
+        String requestBody = objectMapper.writeValueAsString(leaveConversationDto);
+
+        mockMvc.perform(delete("https://localhost:8080/leaveConversation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk());
+
+        assertNull(conversation1.getConversationUserByUsername(testUser1.getUsername()));
     }
 
     @Test
-    void listMessages() {
+    void listMessages() throws Exception {
+        GetConversationMessagesDto getConversationMessagesDto = new GetConversationMessagesDto();
+        getConversationMessagesDto.setConversationId(conversation1.getConversationId());
+        PageInfoDtoRequest pageInfoDtoRequest = new PageInfoDtoRequest();
+        pageInfoDtoRequest.setPageIndex(0);
+        pageInfoDtoRequest.setPageSize(50);
+        getConversationMessagesDto.setPageInfo(pageInfoDtoRequest);
 
+        String requestBody = objectMapper.writeValueAsString(getConversationMessagesDto);
+
+        List<Message> conversationMessages = conversation1.getMessages();
+
+        mockMvc.perform(post("https://localhost:8080/listMessages")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpectAll(
+                        // Kontrola hlavní struktury
+                        jsonPath("$.pageInfo.pageSize", is(50)),
+                        jsonPath("$.pageInfo.pageIndex", is(0)),
+                        jsonPath("$.pageInfo.total", is(3)),
+
+                        // Kontrola prvního objektu v seznamu itemList
+                        jsonPath("$.itemList[0].id", is(conversationMessages.get(2).getMessageId())),
+                        jsonPath("$.itemList[0].conversationId", is(conversation1.getConversationId())),
+                        jsonPath("$.itemList[0].iv.0", is(86)),
+                        jsonPath("$.itemList[0].iv.11", is(176)),
+                        jsonPath("$.itemList[0].sender", is("Franta BU")),
+                        jsonPath("$.itemList[0].message", is("Message3")),
+                        jsonPath("$.itemList[0].dateSend", is(any(String.class))),
+                        jsonPath("$.itemList[0].validTo", is(nullValue())),
+
+                        // Kontrola druhého objektu v seznamu itemList
+                        jsonPath("$.itemList[1].id", is(conversationMessages.get(1).getMessageId())),
+                        jsonPath("$.itemList[1].conversationId", is(conversation1.getConversationId())),
+                        jsonPath("$.itemList[1].iv.0", is(214)),
+                        jsonPath("$.itemList[1].iv.11", is(166)),
+                        jsonPath("$.itemList[1].sender", is("Franta BU")),
+                        jsonPath("$.itemList[1].message", is("Message2")),
+                        jsonPath("$.itemList[1].dateSend", is(any(String.class))),
+                        jsonPath("$.itemList[1].validTo", is(nullValue())),
+
+                        // Kontrola třetího objektu v seznamu itemList
+                        jsonPath("$.itemList[2].id", is(conversationMessages.get(0).getMessageId())),
+                        jsonPath("$.itemList[2].conversationId", is(conversation1.getConversationId())),
+                        jsonPath("$.itemList[2].iv.0", is(244)),
+                        jsonPath("$.itemList[2].iv.11", is(227)),
+                        jsonPath("$.itemList[2].sender", is("Franta BU")),
+                        jsonPath("$.itemList[2].message", is("Message1")),
+                        jsonPath("$.itemList[2].dateSend", is(any(String.class))),
+                        jsonPath("$.itemList[2].validTo", is(nullValue()))
+                );
+        ;
     }
 
     @Test
-    void getConversation() {
+    void getConversation() throws Exception {
+        PublicKey publicKey1 = testUser1.getActivePublicKey().get();
+        PublicKeyDto publicKeyDto1 = objectMapper.readValue(publicKey1.getKeyValue(), PublicKeyDto.class);
 
+        PublicKey publicKey2 = testUser2.getActivePublicKey().get();
+        PublicKeyDto publicKeyDto2 = objectMapper.readValue(publicKey2.getKeyValue(), PublicKeyDto.class);
+
+        mockMvc.perform(get("https://localhost:8080/getConversation/" + conversation1.getConversationId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpectAll(
+                        jsonPath("$.conversationId", is(conversation1.getConversationId())),
+                        jsonPath("$.name", is(conversation1.getConversationName())),
+
+                        // Kontrola prvního uživatele
+                        jsonPath("$.users[0].username", is("Franta BU")),
+                        jsonPath("$.users[0].encryptedSymmetricKey", is("esI0rgLrX77V8oBul4M1bK6mr+oMlv1c2NZm0qvGvHNMt01Dppbvi3treixtH2s2")),
+                        jsonPath("$.users[0].iv.0", is(215)),
+                        jsonPath("$.users[0].iv.11", is(138)),
+                        jsonPath("$.users[0].cipheringPublicKey.crv", is("P-256")),
+                        jsonPath("$.users[0].cipheringPublicKey.ext", is(true)),
+                        jsonPath("$.users[0].cipheringPublicKey.kty", is("EC")),
+                        jsonPath("$.users[0].cipheringPublicKey.keyOps", is(nullValue())),
+                        jsonPath("$.users[0].cipheringPublicKey.x", is("FOHS2BTBzSBnu7V0LDJYXt30rR08B1UGYR_O5fhAcnM")),
+                        jsonPath("$.users[0].cipheringPublicKey.y", is("Wb0ZaxmFYct3vm61zkAGyk4JPXPc3bPp1-uAEEJbxBM")),
+
+                        // Kontrola druhého uživatele
+                        jsonPath("$.users[1].username", is("Druhy uzivatel")),
+                        jsonPath("$.users[1].encryptedSymmetricKey", is("eL/CQBPB2821pyX2g1FyDoqufCoC0qHtKAsLbq3CsvEgM6F4CGzoxQD7WpX2h5/i")),
+                        jsonPath("$.users[1].iv.0", is(88)),
+                        jsonPath("$.users[1].iv.11", is(135)),
+                        jsonPath("$.users[1].cipheringPublicKey.crv", is("P-521")),
+                        jsonPath("$.users[1].cipheringPublicKey.ext", is(true)),
+                        jsonPath("$.users[1].cipheringPublicKey.kty", is("EC")),
+                        jsonPath("$.users[1].cipheringPublicKey.keyOps", is(nullValue())),
+                        jsonPath("$.users[1].cipheringPublicKey.x", is("AUmVOV24lL1TYr5Opok7--_uXwJVf8cLwp0cPrUEUWVQTqji6dioEJN-ejrPJ9-XVOAFhZpYwstHGWL4JR6ybmSp")),
+                        jsonPath("$.users[1].cipheringPublicKey.y", is("ANx2hgmdAtPgAVt3GzETSH2x0yFHTpVM8K6qeGP0GrStWmRAOQ6EiyO3ZJFnTlypG_Qf6OitmhmIi24bilJ__pyO"))
+                )
+        ;
     }
 
     @Test
-    void createConversation() {
+    void createConversation() throws Exception {
+        String conversationName = "Nova konverzace!";
+        CreateConversationDto createConversationDto = new CreateConversationDto();
+        createConversationDto.setName(conversationName);
 
+        List<CipheredSymmetricKeysDto> cipheredSymmetricKeysDtos = new ArrayList<>();
+        CipheredSymmetricKeysDto cipheredSymmetricKeysDto1 = new CipheredSymmetricKeysDto();
+        cipheredSymmetricKeysDto1.setUsername(testUser1.getUsername());
+        cipheredSymmetricKeysDtos.add(cipheredSymmetricKeysDto1);
+
+        CipheredSymmetricKeysDto cipheredSymmetricKeysDto2 = new CipheredSymmetricKeysDto();
+        cipheredSymmetricKeysDto2.setUsername(testUser2.getUsername());
+        cipheredSymmetricKeysDtos.add(cipheredSymmetricKeysDto2);
+        createConversationDto.setUsers(cipheredSymmetricKeysDtos);
+
+        String requestBody = objectMapper.writeValueAsString(createConversationDto);
+
+        mockMvc.perform(post("https://localhost:8080/createConversation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpectAll(
+                    jsonPath("$.id", is(notNullValue())),
+                    jsonPath("$.name", is(conversationName)))
+        ;
     }
 
     @Test
-    void deleteMessage() {
+    void deleteMessage() throws Exception {
+        Message message = conversation1.getMessages().get(0);
+        DeleteMessageDto deleteMessageDto = new DeleteMessageDto();
+        deleteMessageDto.setId(message.getMessageId());
 
+        String requestBody = objectMapper.writeValueAsString(deleteMessageDto);
+
+        mockMvc.perform(delete("https://localhost:8080/deleteMessage")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk());
+
+        assertTrue(conversation1.getMessages().stream().anyMatch(message1 -> message1.getMessageId().equals(message.getMessageId())));
     }
 
     @Test
-    void deleteConversations() {
+    void deleteConversation() {
 
     }
 

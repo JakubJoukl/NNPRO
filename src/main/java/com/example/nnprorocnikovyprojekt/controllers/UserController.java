@@ -74,7 +74,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact added"));
     }
 
-    @PostMapping("/removeContact")
+    @DeleteMapping("/removeContact")
     public ResponseEntity<?> removeContact(@Valid @RequestBody AddRemoveContactDto addRemoveContactDto) {
         userService.removeContact(addRemoveContactDto);
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Contact removed"));

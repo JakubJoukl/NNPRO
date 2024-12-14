@@ -190,7 +190,7 @@ public class ConversationService {
         Instant dateFrom = getConversationMessagesDto.getFrom();
         Instant dateTo = getConversationMessagesDto.getTo();
         if (dateFrom == null) dateFrom = Instant.from(LocalDateTime.of(2000, 1, 1, 1, 1).atOffset(ZoneOffset.UTC));
-        if (dateTo == null) dateTo = Instant.MAX;
+        if (dateTo == null) dateTo = Instant.now().plusSeconds(24 * 60 * 3600);
         if (conversation == null) throw new NotFoundException("Conversation is null");
 
         ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
