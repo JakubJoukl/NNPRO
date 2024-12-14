@@ -160,7 +160,7 @@ public class ConversationService {
         notifyUsersAboutNewMemberExceptUser(conversation, user, addRemoveUserToConversationDto);
         if (user.getActivePublicKey().orElse(null) == null) return new AddUserToConversationResponse();
         else
-            return new AddUserToConversationResponse(objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class));
+            return new AddUserToConversationResponse(objectMapper.readValue(user.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class), user.getUsername());
     }
 
     //Nefunguje a ani nemůže :(
@@ -171,7 +171,11 @@ public class ConversationService {
 
     @Transactional(rollbackFor = Exception.class)
     public Conversation saveConversation(Conversation conversation) {
-        return conversationRepository.save(conversation);
+        conversation = conversationRepository.save(conversation);
+        conversation.getConversationUsers().forEach(conversationUser -> {
+            userService.saveUser(conversationUser.getUser());
+        });
+        return conversation;
     }
 
     public ConversationPageResponseDto getConversationsByPage(PageInfoRequestWrapper conversationPageinfoRequestDto) {
@@ -203,15 +207,15 @@ public class ConversationService {
 
     @Transactional(rollbackFor = Exception.class)
     public ConversationNameDto createConversation(CreateConversationDto createConversationDto) {
+        User creator = userService.getUserFromContext();
         Conversation conversation = new Conversation();
         conversation.setConversationName(createConversationDto.getName());
-        Conversation updatedConversation = conversationRepository.save(conversation);
+        Conversation updatedConversation = saveConversation(conversation);
 
         List<ConversationUser> conversationUsers = getConversationUsersFromDto(createConversationDto, updatedConversation);
         updatedConversation.getConversationUsers().addAll(conversationUsers);
-        Conversation returnedConversation = conversationRepository.save(updatedConversation);
+        Conversation returnedConversation = saveConversation(updatedConversation);
 
-        User creator = userService.getUserFromContext();
         notifyUsersAboutNewConversationExceptUser(conversation, creator);
         return convertConversationToConversationNameDto(returnedConversation);
     }

@@ -25,8 +25,9 @@ public class AddUserToConversationResponse extends CipheredSymmetricKeysDto {
         this.encryptedSymmetricKey = cipheredSymmetricKey;
     }
 
-    public AddUserToConversationResponse(PublicKeyDto publicKey) {
+    public AddUserToConversationResponse(PublicKeyDto publicKey, String username) {
         this.publicKey = publicKey;
+        this.username = username;
     }
 
     public String getUsername() {

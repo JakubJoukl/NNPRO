@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 
 @Validated
-@Controller("chat")
+@Controller("chat") //sad endpoint noises
 public class ChatController {
 
     @Autowired
