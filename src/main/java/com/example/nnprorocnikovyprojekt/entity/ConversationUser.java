@@ -12,12 +12,12 @@ public class ConversationUser {
     @EmbeddedId
     private ConversationUserId conversationUserId;
 
-    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("conversationId")
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;

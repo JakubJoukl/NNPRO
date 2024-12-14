@@ -38,8 +38,6 @@ public class CommonTestParent {
         VerificationCode verificationCode = new VerificationCode("123456", expirationDate, user);
         user.getVerificationCodes().add(verificationCode);
 
-        user.getContacts().add(getTestUser2());
-
         return user;
     }
 

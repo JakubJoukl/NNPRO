@@ -36,8 +36,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,10 +47,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_UNCOMMITTED)
 class UserControllerTest {
 
-    User testUser1 = null;
-    User testUser2 = null;
-    User testUser3 = null;
-    Conversation conversation1 = null;
+    private User testUser1 = null;
+    private User testUser2 = null;
+    private User testUser3 = null;
+    private Conversation conversation1 = null;
 
     @Autowired
     private UserService userService;
@@ -87,7 +86,6 @@ class UserControllerTest {
         when(captchaService.validateCaptcha(any())).thenReturn(true);
         List<User> users = getCompleteTestUsers();
         getTestUser3();
-        entityManager.flush();
         //conversationUser zajistuje sve pridani do konverzaci a useru...
 
         //TODO
@@ -281,7 +279,41 @@ class UserControllerTest {
     }
 
     @Test
-    void getCurrentUserProfile() {
+    void getCurrentUserProfile() throws Exception {
+        UserDto userDto = new UserDto();
+        userDto.setUsername(testUser1.getUsername());
+        userDto.setEmail(testUser1.getEmail());
+        userDto.setPublicKey(objectMapper.readValue(testUser1.getActivePublicKey().get().getKeyValue(), PublicKeyDto.class));
+
+        //private String username;
+
+        //private String email;
+
+        //private PublicKeyDto publicKey;
+
+        PublicKey publicKey = testUser1.getActivePublicKey().get();
+        PublicKeyDto publicKeyDto = objectMapper.readValue(publicKey.getKeyValue(), PublicKeyDto.class);
+
+        /*
+        private String crv;
+        private Boolean ext;
+        private String kty;
+        private List<String> keyOps;
+        private String x;
+        private String y;
+         */
+
+        mockMvc.perform(get("https://localhost:8080/getCurrentUserProfile"))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.username", is(testUser1.getUsername())),
+                        jsonPath("$.email", is(testUser1.getEmail())),
+                        jsonPath("$.publicKey.crv", is(publicKeyDto.getCrv())),
+                        jsonPath("$.publicKey.ext", is(publicKeyDto.getExt())),
+                        jsonPath("$.publicKey.kty", is(publicKeyDto.getKty())),
+                        jsonPath("$.publicKey.x", is(publicKeyDto.getX())),
+                        jsonPath("$.publicKey.y", is(publicKeyDto.getY()))
+                );
     }
 
     @Test
@@ -313,13 +345,16 @@ class UserControllerTest {
         users.add(user1);
         users.add(user2);
 
+        user1.getContacts().add(user2);
+        user2.getContacts().add(user1);
+
         this.testUser1 = userService.saveUser(user1);
-        this.testUser2 = user2;
+        this.testUser2 = userService.saveUser(user2);
 
         Conversation conversation = CommonTestParent.getTestConversation().get();
         conversation.setConversationId(null);
         conversationService.saveConversation(conversation);
-        List<Message> messages = CommonTestParent.createTestMessages(user1, conversation);
+        List<Message> messages = CommonTestParent.createTestMessages(testUser1, conversation);
         messages.forEach(message -> message.setMessageId(null));
         conversation.getMessages().addAll(messages);
 

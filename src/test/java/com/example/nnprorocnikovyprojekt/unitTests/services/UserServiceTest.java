@@ -12,6 +12,7 @@ import com.example.nnprorocnikovyprojekt.services.MessageService;
 import com.example.nnprorocnikovyprojekt.services.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -68,10 +69,17 @@ class UserServiceTest extends CommonTestParent {
 
     @Mock
     private CaptchaService captchaService;
+    
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        user = getTestUser();
+        user.getContacts().add(getTestUser2());
+    }
 
     @Test
     void loadUserByUsername() {
-        User user = getTestUser();
         when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
         User returnedUser = userService.getUserByUsername(user.getUsername());
         assertEquals(user, returnedUser);
@@ -79,7 +87,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void getUserByUsername() {
-        User user = getTestUser();
         when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
         User returnedUser = userService.getUserByUsername(user.getUsername());
         assertEquals(user, returnedUser);
@@ -87,7 +94,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void getResetTokenByValue() {
-        User user = getTestUser();
         ResetToken resetToken = user.getResetTokens().get(0);
         when(resetTokenRepository.getResetTokenByToken(resetToken.getToken())).thenReturn(Optional.of(resetToken));
         ResetToken returnedToken = userService.getResetTokenByValue(resetToken.getToken());
@@ -97,7 +103,6 @@ class UserServiceTest extends CommonTestParent {
     @Test
     void newPassword() {
         NewPasswordDto newPasswordDto = new NewPasswordDto();
-        User user = getTestUser();
         ResetToken resetToken = user.getResetTokens().get(0);
         String newEncyptedPassword = "Cute little kitten";
 
@@ -111,7 +116,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void deactivateUserResetTokens() {
-        User user = getTestUser();
         userService.deactivateUserResetTokens(user);
         assertFalse(user.getResetTokens().get(0).isValid());
         assertEquals(0, user.getResetTokens().stream().filter(ResetToken::isValid).count());
@@ -119,7 +123,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void deactivateUserVerificationTokens() {
-        User user = getTestUser();
         userService.deactivateUserVerificationTokens(user);
         assertFalse(user.getVerificationCodes().get(0).isValid());
         assertEquals(0, user.getVerificationCodes().stream().filter(VerificationCode::isValid).count());
@@ -145,7 +148,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void changePassword() {
-        User user = getTestUser();
         String newPassword = "pawns";
         when(passwordEncoder.encode(newPassword)).thenReturn("mittens");
         userService.changePassword(newPassword, user);
@@ -154,7 +156,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void userPasswordMatches() {
-        User user = getTestUser();
         String encodedPassword = "shadow";
         when(passwordEncoder.matches(encodedPassword, user.getPassword())).thenReturn(true);
         boolean passwordMatches = userService.userPasswordMatches(encodedPassword, user);
@@ -163,21 +164,18 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void generateVerificationCodeForUser() {
-        User user = getTestUser();
         VerificationCode verificationCode = userService.generateVerificationCodeForUser(user);
         assertTrue(user.getVerificationCodes().contains(verificationCode));
     }
 
     @Test
     void generateResetTokenForUser() {
-        User user = getTestUser();
         ResetToken resetToken = userService.generateResetTokenForUser(user);
         assertTrue(user.getResetTokens().contains(resetToken));
     }
 
     @Test
     void verifyVerificationCode() {
-        User user = getTestUser();
         when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
         String verificationCode = user.getVerificationCodes().get(0).getVerificationCode();
         List<VerificationCode> verificationCodes = new ArrayList<>();
@@ -190,7 +188,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void updateUser() throws JsonProcessingException {
-        User user = getTestUser();
         String confirmationPassword = user.getPassword();
         String email = "newEmail";
         String password = "newPassword";
@@ -233,7 +230,6 @@ class UserServiceTest extends CommonTestParent {
     @Test
     void addContact() {
         AddRemoveContactDto addRemoveContactDto = new AddRemoveContactDto();
-        User user = getTestUser();
         User user3 = getTestUser3();
         addRemoveContactDto.setUsername(user3.getUsername());
         when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
@@ -244,7 +240,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void listContacts() {
-        User user = getTestUser();
         User user2 = getTestUser2();
 
         SearchUserDtoRequest searchUserDtoRequest = new SearchUserDtoRequest();
@@ -263,7 +258,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void searchUsers() {
-        User user = getTestUser();
         User user2 = getTestUser2();
 
         ArrayList<User> contacts = new ArrayList<>();
@@ -287,7 +281,6 @@ class UserServiceTest extends CommonTestParent {
 
     @Test
     void removeContact() {
-        User user = getTestUser();
         User user2 = user.getContacts().get(0);
 
         AddRemoveContactDto addRemoveContactDto = new AddRemoveContactDto();
