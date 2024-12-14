@@ -171,10 +171,10 @@ public class ConversationService {
 
     @Transactional(rollbackFor = Exception.class)
     public Conversation saveConversation(Conversation conversation) {
-        conversation = conversationRepository.save(conversation);
         conversation.getConversationUsers().forEach(conversationUser -> {
             userService.saveUser(conversationUser.getUser());
         });
+        conversation = conversationRepository.save(conversation);
         return conversation;
     }
 
