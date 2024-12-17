@@ -122,6 +122,8 @@ public class EmailService {
 
             ResetToken resetToken = userService.generateResetTokenForUser(user);
 
+            logger.debug("Reset token: " + resetToken.getToken());
+
             String subject = "Test email reset hesla pro " + user.getEmail();
             String emailHtmlContent = "<h1>Reset hesla</h1><p>Token pro reset hesla je " + resetToken.getToken() + " a platí do " + formatter.format(resetToken.getExpirationDate().atOffset(ZoneOffset.UTC)) + "</p>";
 

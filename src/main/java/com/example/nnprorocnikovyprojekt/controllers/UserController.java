@@ -42,23 +42,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new GeneralResponseDto("User created"));
     }
 
-    //TODO bude potreba
     @PostMapping("/resetPassword")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDto authRequest) {
-        User user = userService.getUserByUsername(authRequest.getUsername());
-        if(user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GeneralResponseDto("User not found"));
-        emailService.sendResetTokenEmail(user);
-        //if(emailSent) {
+        userService.sendResetPassword(authRequest);
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Reset email send"));
-        //} else {
-        //    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GeneralResponseDto("Failed to send email"));
-        //}
     }
 
-    //TODO bude potreba?
     @PostMapping("/newPassword")
-    public ResponseEntity<?> newPassword(@Valid @RequestBody NewPasswordDto resetPasswordRequest){
-        userService.newPassword(resetPasswordRequest);
+    public ResponseEntity<?> newPassword(@Valid @RequestBody NewPasswordDto newPasswordDto){
+        userService.newPassword(newPasswordDto);
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Password reset"));
     }
 

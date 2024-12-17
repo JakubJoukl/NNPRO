@@ -93,20 +93,23 @@ public class UserService implements UserDetailsService {
         return getUserByUsername(authentication.getName());
     }
 
-    public ResetToken getResetTokenByValue(String resetTokenValue){
-        return resetTokenRepository.getResetTokenByToken(resetTokenValue).orElseThrow(() -> new RuntimeException("Nebyl nalezen token"));
+    public ResetToken getResetTokenByUsernameAndValue(User user, String resetTokenValue){
+        return resetTokenRepository.getResetTokenByUserAndToken(user, resetTokenValue).orElseThrow(() -> new RuntimeException("Reset token was not found"));
     }
 
     public void newPassword(NewPasswordDto resetPasswordRequest){
-        ResetToken resetToken = getResetTokenByValue(resetPasswordRequest.getToken());
+        validateCaptcha(resetPasswordRequest.getCaptchaToken());
+        User user = getUserByUsername(resetPasswordRequest.getUsername());
+        ResetToken resetToken = getResetTokenByUsernameAndValue(user, resetPasswordRequest.getToken());
 
         if(resetToken == null) throw new UnauthorizedException("Reset token was not found");
 
         boolean resetTokenIsValid = resetToken.isValid() && Instant.now().isBefore(resetToken.getExpirationDate());
         if(resetTokenIsValid){
-            User user = resetToken.getUser();
             changePassword(resetPasswordRequest.getPassword(), user);
             saveUser(user);
+        } else {
+            throw new UnauthorizedException("Reset token is no longer valid");
         }
         resetToken.setValid(false);
         saveResetToken(resetToken);
@@ -130,10 +133,7 @@ public class UserService implements UserDetailsService {
 
     @Transactional(rollbackFor = Exception.class)
     public boolean registerUser(RegistrationDto registrationRequest) {
-        boolean captchaIsValid = captchaService.validateCaptcha(registrationRequest.getCaptchaToken());
-        if(!captchaIsValid) {
-            throw new UnauthorizedException("Captcha is not valid");
-        }
+        validateCaptcha(registrationRequest.getCaptchaToken());
 
         boolean alreadyExists = userRepository.getUserByUsername(registrationRequest.getUsername()).isPresent();
         if(alreadyExists) return false;
@@ -305,10 +305,7 @@ public class UserService implements UserDetailsService {
     }
 
     public JwtTokenDto verify2FaAndGetJwtToken(VerificationDto verificationDto) {
-        boolean captchaIsValid = captchaService.validateCaptcha(verificationDto.getCaptchaToken());
-        if(!captchaIsValid) {
-            throw new UnauthorizedException("Captcha is not valid");
-        }
+        validateCaptcha(verificationDto.getCaptchaToken());
 
         boolean verificationCodeMatches = verifyVerificationCode(verificationDto.getUsername(), verificationDto.getVerificationCode());
 
@@ -323,10 +320,7 @@ public class UserService implements UserDetailsService {
     }
 
     public ExpirationDateDto loginUser(LoginDto authRequest) {
-        boolean captchaIsValid = captchaService.validateCaptcha(authRequest.getCaptchaToken());
-        if(!captchaIsValid) {
-            throw new UnauthorizedException("Captcha is not valid");
-        }
+        validateCaptcha(authRequest.getCaptchaToken());
 
         Authentication authentication = applicationContext.getBean(AuthenticationManager.class).authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
@@ -355,6 +349,21 @@ public class UserService implements UserDetailsService {
             throw new RuntimeException("Failed to remove contact -> contact was not in list of user contacts");
         }
         saveUser(user);
+    }
+
+    public void sendResetPassword(ResetPasswordDto authRequest) {
+        validateCaptcha(authRequest.getCaptchaToken());
+
+        User user = getUserByUsername(authRequest.getUsername());
+        if(user == null) throw new NotFoundException("User not found");
+        emailService.sendResetTokenEmail(user);
+    }
+
+    private void validateCaptcha(String captchaToken) {
+        boolean captchaIsValid = captchaService.validateCaptcha(captchaToken);
+        if(!captchaIsValid) {
+            throw new UnauthorizedException("Captcha is not valid");
+        }
     }
 
     //TODO zkopirovane -> bude vubec potreba?

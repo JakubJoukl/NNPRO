@@ -95,8 +95,9 @@ class UserServiceTest extends CommonTestParent {
     @Test
     void getResetTokenByValue() {
         ResetToken resetToken = user.getResetTokens().get(0);
-        when(resetTokenRepository.getResetTokenByToken(resetToken.getToken())).thenReturn(Optional.of(resetToken));
-        ResetToken returnedToken = userService.getResetTokenByValue(resetToken.getToken());
+        when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
+        when(resetTokenRepository.getResetTokenByUserAndToken(user, resetToken.getToken())).thenReturn(Optional.of(resetToken));
+        ResetToken returnedToken = userService.getResetTokenByUsernameAndValue(user, resetToken.getToken());
         assertEquals(resetToken, returnedToken);
     }
 
@@ -108,7 +109,8 @@ class UserServiceTest extends CommonTestParent {
 
         newPasswordDto.setToken(resetToken.getToken());
         newPasswordDto.setPassword(user.getPassword());
-        when(resetTokenRepository.getResetTokenByToken(resetToken.getToken())).thenReturn(Optional.of(resetToken));
+        when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
+        when(resetTokenRepository.getResetTokenByUserAndToken(user, resetToken.getToken())).thenReturn(Optional.of(resetToken));
         when(passwordEncoder.encode(user.getPassword())).thenReturn(newEncyptedPassword);
         userService.newPassword(newPasswordDto);
         assertEquals(newEncyptedPassword, user.getPassword());
