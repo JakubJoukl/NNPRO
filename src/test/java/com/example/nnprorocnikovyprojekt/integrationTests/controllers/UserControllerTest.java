@@ -192,6 +192,7 @@ class UserControllerTest {
         NewPasswordDto newPasswordDto = new NewPasswordDto();
         newPasswordDto.setPassword("MoonPrismPowerMakeUp!");
         newPasswordDto.setToken(testUser1.getActiveResetToken().getToken());
+        when(captchaService.validateCaptcha(newPasswordDto.getCaptchaToken())).thenReturn(true);
 
         String oldPassword = testUser1.getPassword();
 

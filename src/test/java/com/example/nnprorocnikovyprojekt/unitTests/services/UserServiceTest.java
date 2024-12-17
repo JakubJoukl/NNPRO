@@ -95,7 +95,6 @@ class UserServiceTest extends CommonTestParent {
     @Test
     void getResetTokenByValue() {
         ResetToken resetToken = user.getResetTokens().get(0);
-        when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
         when(resetTokenRepository.getResetTokenByUserAndToken(user, resetToken.getToken())).thenReturn(Optional.of(resetToken));
         ResetToken returnedToken = userService.getResetTokenByUsernameAndValue(user, resetToken.getToken());
         assertEquals(resetToken, returnedToken);
@@ -109,9 +108,11 @@ class UserServiceTest extends CommonTestParent {
 
         newPasswordDto.setToken(resetToken.getToken());
         newPasswordDto.setPassword(user.getPassword());
-        when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
+        newPasswordDto.setUsername(user.getUsername());
         when(resetTokenRepository.getResetTokenByUserAndToken(user, resetToken.getToken())).thenReturn(Optional.of(resetToken));
         when(passwordEncoder.encode(user.getPassword())).thenReturn(newEncyptedPassword);
+        when(captchaService.validateCaptcha(newPasswordDto.getCaptchaToken())).thenReturn(true);
+        when(userRepository.getUserByUsername(user.getUsername())).thenReturn(Optional.of(user));
         userService.newPassword(newPasswordDto);
         assertEquals(newEncyptedPassword, user.getPassword());
     }

@@ -88,6 +88,13 @@ public class ConversationService {
             throw new RuntimeException("Failed to parse dto to message");
         }
 
+        ConversationUser conversationUser = conversation.getConversationUserByUsername(user.getUsername());
+        if(conversationUser == null) throw new RuntimeException("Conversation user not found");
+        if(conversationUser.isEncryptedSymmetricKeyExpired()) {
+            simpMessagingTemplate.convertAndSend("/topic/rotateKey/" + user.getUsername(), convertConversationToConversationNameDto(conversation));
+            throw new RuntimeException("Need to rotate public key");
+        }
+
         Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo(), initiationVectorAsString);
         messageService.saveMessage(message);
         simpMessagingTemplate.convertAndSend("/topic/addMessage/" + conversation.getConversationId(), convertMessageToMessageDto(message));

@@ -108,3 +108,6 @@ ALTER TABLE user ADD CONSTRAINT UC_USEREMAIL_COL UNIQUE (email);
 
 -- changeset Kuba:1733951131754-2
 ALTER TABLE user ADD CONSTRAINT UC_USERUSERNAME_COL UNIQUE (username);
+
+-- changeset Kuba:1734470421915-1
+ALTER TABLE conversation_user ADD encrypted_symmetric_key_added_on datetime(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL;

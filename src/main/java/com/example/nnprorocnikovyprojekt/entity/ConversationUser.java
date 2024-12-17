@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Objects;
 
 @Entity
@@ -26,6 +27,9 @@ public class ConversationUser {
     @Column
     private String encryptedSymmetricKey;
 
+    @Column(nullable = false, updatable = true, columnDefinition = "DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)")
+    private Instant encryptedSymmetricKeyAddedOn;
+
     @Column(length = 400)
     private String initiationVector;
 
@@ -47,6 +51,7 @@ public class ConversationUser {
         this.encryptedSymmetricKey = encryptedSymmetricKey;
         this.cipheringPublicKey = cipheringPublicKey;
         this.initiationVector = initiationVector;
+        this.encryptedSymmetricKeyAddedOn = Instant.now();
         user.getConversationUsers().add(this);
         conversation.getConversationUsers().add(this);
     }
@@ -105,6 +110,18 @@ public class ConversationUser {
 
     public void setInitiationVector(String initiationVector) {
         this.initiationVector = initiationVector;
+    }
+
+    public Instant getEncryptedSymmetricKeyAddedOn() {
+        return encryptedSymmetricKeyAddedOn;
+    }
+
+    public void setEncryptedSymmetricKeyAddedOn(Instant encryptedSymmetricKeyAddedOn) {
+        this.encryptedSymmetricKeyAddedOn = encryptedSymmetricKeyAddedOn;
+    }
+
+    public boolean isEncryptedSymmetricKeyExpired() {
+        return getEncryptedSymmetricKeyAddedOn().plusSeconds(30 * 24 * 3600).isBefore(Instant.now());
     }
 }
 
