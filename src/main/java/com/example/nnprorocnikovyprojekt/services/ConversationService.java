@@ -112,9 +112,7 @@ public class ConversationService {
 
         notifyUsersAboutNewConversationExceptUser(conversation, currentUser);
 
-        conversation.getConversationUsers().forEach(conversationUser -> {
-            simpMessagingTemplate.convertAndSend("/topic/keyUpdated/" + conversation.getConversationId(), convertConversationToConversationNameDto(conversation));
-        });
+        simpMessagingTemplate.convertAndSend("/topic/keyUpdated/" + conversation.getConversationId(), convertConversationToConversationNameDto(conversation));
 
         saveConversation(conversation);
     }
