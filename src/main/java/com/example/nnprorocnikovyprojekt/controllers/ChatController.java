@@ -3,6 +3,7 @@ package com.example.nnprorocnikovyprojekt.controllers;
 import com.example.nnprorocnikovyprojekt.dtos.conversation.*;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
+import com.example.nnprorocnikovyprojekt.dtos.user.UserDto;
 import com.example.nnprorocnikovyprojekt.services.ConversationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 @Validated
 @Controller("chat") //sad endpoint noises
@@ -39,6 +41,12 @@ public class ChatController {
     public ResponseEntity<?> rotateKeys(@Valid @RequestBody RotateKeysDto rotateKeysDto) {
         conversationService.rotateKeys(rotateKeysDto);
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("New keys set"));
+    }
+
+    @PostMapping("/listUsers")
+    public ResponseEntity<?> listUsers(@Valid @RequestBody UsersDto usersDto) {
+        List<UserDto> users = conversationService.getUsers(usersDto);
+        return ResponseEntity.status(HttpStatus.OK).body(users);
     }
 
     @PostMapping(path = "/listUserConversation")

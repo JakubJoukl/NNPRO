@@ -1,5 +1,6 @@
 package com.example.nnprorocnikovyprojekt.controllers;
 
+import com.example.nnprorocnikovyprojekt.dtos.conversation.UsersDto;
 import com.example.nnprorocnikovyprojekt.dtos.general.GeneralResponseDto;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;

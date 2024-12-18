@@ -7,6 +7,7 @@ import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoRequestWrapper;
 import com.example.nnprorocnikovyprojekt.dtos.user.PublicKeyDto;
+import com.example.nnprorocnikovyprojekt.dtos.user.UserDto;
 import com.example.nnprorocnikovyprojekt.entity.Conversation;
 import com.example.nnprorocnikovyprojekt.entity.ConversationUser;
 import com.example.nnprorocnikovyprojekt.entity.Message;
@@ -418,5 +419,11 @@ public class ConversationService {
             throw new RuntimeException("Failed to parse public key as string");
         }
         return new ConversationUser(userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()), updatedConversation, cipheredSymmetricKeysDto.getEncryptedSymmetricKey(), publicKeyDtoAsString, initiationVectorAsString);
+    }
+
+    public List<UserDto> getUsers(UsersDto usersDto) {
+        Conversation conversation = getConversationById(usersDto.getConversationId());
+        List<User> users = conversation.getConversationUsers().stream().map(ConversationUser::getUser).collect(Collectors.toList());
+        return userService.usersToUserDtos(users);
     }
 }

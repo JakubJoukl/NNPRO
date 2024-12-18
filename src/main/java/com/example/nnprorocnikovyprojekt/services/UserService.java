@@ -251,6 +251,12 @@ public class UserService implements UserDetailsService {
         return userPageResponseDto;
     }
 
+    public List<UserDto> usersToUserDtos(List<User> users) {
+        return users.stream()
+                .map(this::userToUserDto)
+                .collect(Collectors.toList());
+    }
+
     private UserDto userToUserDto(User user) {
         String publicKeyString = user.getActivePublicKey().isPresent()? user.getActivePublicKey().get().getKeyValue() : null;
         try {
