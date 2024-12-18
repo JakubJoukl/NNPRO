@@ -98,16 +98,16 @@ public class ConversationService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void rotateKeys(CreateConversationDto createConversationDto) {
+    public void rotateKeys(RotateKeysDto rotateKeysDto) {
         User currentUser = userService.getUserFromContext();
-        Conversation conversation = getConversationById(createConversationDto.getConversationId());
+        Conversation conversation = getConversationById(rotateKeysDto.getConversationId());
         if(conversation == null) throw new NotFoundException("Conversation not found");
 
         Integer conversationUsersSize = conversation.getConversationUsers().size();
-        Integer requestUsersSize = createConversationDto.getUsers().size();
+        Integer requestUsersSize = rotateKeysDto.getUsers().size();
         if(!conversationUsersSize.equals(requestUsersSize)) throw new RuntimeException("Conversation users and current users do not match");
 
-        setNewKeysToConversationUsers(createConversationDto, conversation);
+        setNewKeysToConversationUsers(rotateKeysDto, conversation);
 
         notifyUsersAboutNewConversationExceptUser(conversation, currentUser);
 
@@ -119,6 +119,19 @@ public class ConversationService {
     }
 
     private void setNewKeysToConversationUsers(CreateConversationDto createConversationDto, Conversation conversation) {
+        List<ConversationUser> receivedConversationUsers = getConversationUsersFromDto(createConversationDto, conversation);
+        HashSet<String> alreadyMatchedUsernames = new HashSet<>();
+        receivedConversationUsers.forEach(receivedConversationUser -> {
+            ConversationUser conversationUser = conversation.getConversationUserByUsername(receivedConversationUser.getUser().getUsername());
+            boolean added = alreadyMatchedUsernames.add(receivedConversationUser.getUser().getUsername());
+            if(!added) throw new RuntimeException("Duplicated entry");
+            conversationUser.setCipheringPublicKey(receivedConversationUser.getCipheringPublicKey());
+            conversationUser.setEncryptedSymmetricKey(receivedConversationUser.getEncryptedSymmetricKey());
+            conversationUser.setEncryptedSymmetricKeyAddedOn(Instant.now());
+        });
+    }
+
+    private void setNewKeysToConversationUsers(RotateKeysDto createConversationDto, Conversation conversation) {
         List<ConversationUser> receivedConversationUsers = getConversationUsersFromDto(createConversationDto, conversation);
         HashSet<String> alreadyMatchedUsernames = new HashSet<>();
         receivedConversationUsers.forEach(receivedConversationUser -> {
@@ -387,6 +400,11 @@ public class ConversationService {
 
     private List<ConversationUser> getConversationUsersFromDto(CreateConversationDto createConversationDto, Conversation updatedConversation) {
         List<ConversationUser> conversationUsers = createConversationDto.getUsers().stream().map(cipheredSymmetricKeysDto -> getConversationUserFromCipheredSymmetricKeyDto(updatedConversation, cipheredSymmetricKeysDto)).collect(Collectors.toList());
+        return conversationUsers;
+    }
+
+    private List<ConversationUser> getConversationUsersFromDto(RotateKeysDto rotateKeysDto, Conversation updatedConversation) {
+        List<ConversationUser> conversationUsers = rotateKeysDto.getUsers().stream().map(cipheredSymmetricKeysDto -> getConversationUserFromCipheredSymmetricKeyDto(updatedConversation, cipheredSymmetricKeysDto)).collect(Collectors.toList());
         return conversationUsers;
     }
 

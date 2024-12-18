@@ -36,8 +36,8 @@ public class ChatController {
     }
 
     @PostMapping("/rotateKeys")
-    public ResponseEntity<?> rotateKeys(CreateConversationDto createConversationDto) {
-        conversationService.rotateKeys(createConversationDto);
+    public ResponseEntity<?> rotateKeys(RotateKeysDto rotateKeysDto) {
+        conversationService.rotateKeys(rotateKeysDto);
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("New keys set"));
     }
 
