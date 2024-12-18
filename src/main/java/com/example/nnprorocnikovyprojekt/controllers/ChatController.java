@@ -43,9 +43,9 @@ public class ChatController {
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("New keys set"));
     }
 
-    @PostMapping("/listUsers")
-    public ResponseEntity<?> listUsers(@Valid @RequestBody UsersDto usersDto) {
-        List<UserDto> users = conversationService.getUsers(usersDto);
+    @PostMapping("/listUsersInConversation")
+    public ResponseEntity<?> listUsers(@Valid @RequestBody ConversationNameDto conversationNameDto) {
+        List<UserDto> users = conversationService.getUsers(conversationNameDto);
         return ResponseEntity.status(HttpStatus.OK).body(users);
     }
 

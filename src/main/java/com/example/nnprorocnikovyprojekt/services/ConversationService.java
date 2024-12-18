@@ -421,8 +421,8 @@ public class ConversationService {
         return new ConversationUser(userService.getUserByUsername(cipheredSymmetricKeysDto.getUsername()), updatedConversation, cipheredSymmetricKeysDto.getEncryptedSymmetricKey(), publicKeyDtoAsString, initiationVectorAsString);
     }
 
-    public List<UserDto> getUsers(UsersDto usersDto) {
-        Conversation conversation = getConversationById(usersDto.getConversationId());
+    public List<UserDto> getUsers(ConversationNameDto conversationNameDto) {
+        Conversation conversation = getConversationById(conversationNameDto.getId());
         List<User> users = conversation.getConversationUsers().stream().map(ConversationUser::getUser).collect(Collectors.toList());
         return userService.usersToUserDtos(users);
     }
