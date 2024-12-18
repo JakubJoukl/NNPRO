@@ -119,30 +119,32 @@ public class ConversationService {
         saveConversation(conversation);
     }
 
-    private void setNewKeysToConversationUsers(CreateConversationDto createConversationDto, Conversation conversation) {
-        List<ConversationUser> receivedConversationUsers = getConversationUsersFromDto(createConversationDto, conversation);
+    private void setNewKeysToConversationUsers(RotateKeysDto createConversationDto, Conversation conversation) {
+        List<CipheredSymmetricKeysDto> receivedConversationUsers = createConversationDto.getUsers();
         HashSet<String> alreadyMatchedUsernames = new HashSet<>();
         receivedConversationUsers.forEach(receivedConversationUser -> {
-            ConversationUser conversationUser = conversation.getConversationUserByUsername(receivedConversationUser.getUser().getUsername());
-            boolean added = alreadyMatchedUsernames.add(receivedConversationUser.getUser().getUsername());
+            ConversationUser conversationUser = conversation.getConversationUserByUsername(receivedConversationUser.getUsername());
+            boolean added = alreadyMatchedUsernames.add(receivedConversationUser.getUsername());
             if(!added) throw new RuntimeException("Duplicated entry");
-            conversationUser.setCipheringPublicKey(receivedConversationUser.getCipheringPublicKey());
-            conversationUser.setEncryptedSymmetricKey(receivedConversationUser.getEncryptedSymmetricKey());
-            conversationUser.setEncryptedSymmetricKeyAddedOn(Instant.now());
+
+            setUserDetailsFromCipheredSymmetricKeysDto(receivedConversationUser, conversationUser);
         });
     }
 
-    private void setNewKeysToConversationUsers(RotateKeysDto createConversationDto, Conversation conversation) {
-        List<ConversationUser> receivedConversationUsers = getConversationUsersFromDto(createConversationDto, conversation);
-        HashSet<String> alreadyMatchedUsernames = new HashSet<>();
-        receivedConversationUsers.forEach(receivedConversationUser -> {
-            ConversationUser conversationUser = conversation.getConversationUserByUsername(receivedConversationUser.getUser().getUsername());
-            boolean added = alreadyMatchedUsernames.add(receivedConversationUser.getUser().getUsername());
-            if(!added) throw new RuntimeException("Duplicated entry");
-            conversationUser.setCipheringPublicKey(receivedConversationUser.getCipheringPublicKey());
-            conversationUser.setEncryptedSymmetricKey(receivedConversationUser.getEncryptedSymmetricKey());
-            conversationUser.setEncryptedSymmetricKeyAddedOn(Instant.now());
-        });
+    private void setUserDetailsFromCipheredSymmetricKeysDto(CipheredSymmetricKeysDto receivedConversationUser, ConversationUser conversationUser) {
+        String publicKeyDtoAsString = null;
+        String initiationVectorAsString = null;
+        try {
+            publicKeyDtoAsString = objectMapper.writeValueAsString(receivedConversationUser.getCipheringPublicKey());
+            initiationVectorAsString = objectMapper.writeValueAsString(receivedConversationUser.getIv());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse public key as string");
+        }
+
+        conversationUser.setInitiationVector(initiationVectorAsString);
+        conversationUser.setCipheringPublicKey(publicKeyDtoAsString);
+        conversationUser.setEncryptedSymmetricKey(receivedConversationUser.getEncryptedSymmetricKey());
+        conversationUser.setEncryptedSymmetricKeyAddedOn(Instant.now());
     }
 
     public void notifyUsersAboutNewConversationExceptUser(Conversation conversation, User creator) {
