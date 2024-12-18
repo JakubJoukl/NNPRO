@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CreateConversationDto {
+    private Integer conversationId;
+
     @NotNull
     @Length(min = 7, max = 29)
     private String name;
@@ -28,5 +30,13 @@ public class CreateConversationDto {
 
     public void setUsers(List<CipheredSymmetricKeysDto> users) {
         this.users = users;
+    }
+
+    public Integer getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(Integer conversationId) {
+        this.conversationId = conversationId;
     }
 }

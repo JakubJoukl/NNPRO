@@ -35,6 +35,12 @@ public class ChatController {
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Message processed, receivers notified"));
     }
 
+    @PostMapping("/rotateKeys")
+    public ResponseEntity<?> rotateKeys(CreateConversationDto createConversationDto) {
+        conversationService.rotateKeys(createConversationDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("New keys set"));
+    }
+
     @PostMapping(path = "/listUserConversation")
     public ResponseEntity<?> listUserConversation(@Valid @RequestBody PageInfoRequestWrapper pageInfoRequestWrapper){
         ConversationPageResponseDto userConversations = conversationService.getConversationsByPage(pageInfoRequestWrapper);

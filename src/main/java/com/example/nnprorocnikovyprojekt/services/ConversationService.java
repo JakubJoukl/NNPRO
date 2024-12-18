@@ -30,10 +30,7 @@ import java.security.Principal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,6 +95,40 @@ public class ConversationService {
         Message message = new Message(user, conversation, messageDto.getMessage(), messageDto.getValidTo(), initiationVectorAsString);
         messageService.saveMessage(message);
         simpMessagingTemplate.convertAndSend("/topic/addMessage/" + conversation.getConversationId(), convertMessageToMessageDto(message));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void rotateKeys(CreateConversationDto createConversationDto) {
+        User currentUser = userService.getUserFromContext();
+        Conversation conversation = getConversationById(createConversationDto.getConversationId());
+        if(conversation == null) throw new NotFoundException("Conversation not found");
+
+        Integer conversationUsersSize = conversation.getConversationUsers().size();
+        Integer requestUsersSize = createConversationDto.getUsers().size();
+        if(!conversationUsersSize.equals(requestUsersSize)) throw new RuntimeException("Conversation users and current users do not match");
+
+        setNewKeysToConversationUsers(createConversationDto, conversation);
+
+        notifyUsersAboutNewConversationExceptUser(conversation, currentUser);
+
+        conversation.getConversationUsers().forEach(conversationUser -> {
+            simpMessagingTemplate.convertAndSend("/topic/keyUpdated/" + conversation.getConversationId(), convertConversationToConversationNameDto(conversation));
+        });
+
+        saveConversation(conversation);
+    }
+
+    private void setNewKeysToConversationUsers(CreateConversationDto createConversationDto, Conversation conversation) {
+        List<ConversationUser> receivedConversationUsers = getConversationUsersFromDto(createConversationDto, conversation);
+        HashSet<String> alreadyMatchedUsernames = new HashSet<>();
+        receivedConversationUsers.forEach(receivedConversationUser -> {
+            ConversationUser conversationUser = conversation.getConversationUserByUsername(receivedConversationUser.getUser().getUsername());
+            boolean added = alreadyMatchedUsernames.add(receivedConversationUser.getUser().getUsername());
+            if(!added) throw new RuntimeException("Duplicated entry");
+            conversationUser.setCipheringPublicKey(receivedConversationUser.getCipheringPublicKey());
+            conversationUser.setEncryptedSymmetricKey(receivedConversationUser.getEncryptedSymmetricKey());
+            conversationUser.setEncryptedSymmetricKeyAddedOn(Instant.now());
+        });
     }
 
     public void notifyUsersAboutNewConversationExceptUser(Conversation conversation, User creator) {
