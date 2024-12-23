@@ -9,10 +9,7 @@ import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.*;
 import com.example.nnprorocnikovyprojekt.external.CaptchaService;
-import com.example.nnprorocnikovyprojekt.repositories.AuthorityRepository;
-import com.example.nnprorocnikovyprojekt.repositories.ResetTokenRepository;
-import com.example.nnprorocnikovyprojekt.repositories.UserRepository;
-import com.example.nnprorocnikovyprojekt.repositories.VerificationCodeRepository;
+import com.example.nnprorocnikovyprojekt.repositories.*;
 import com.example.nnprorocnikovyprojekt.security.JwtService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,6 +74,9 @@ public class UserService implements UserDetailsService {
     @Autowired
     private AuthorityRepository authorityRepository;
 
+    @Autowired
+    private AuthTokenRepository authTokenRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
@@ -137,6 +137,14 @@ public class UserService implements UserDetailsService {
         user.getVerificationCodes().forEach(verificationCode -> {
             verificationCode.setValid(false);
             verificationCodeRepository.save(verificationCode);
+        });
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deactivateUserAuthenticationTokens(User user){
+        user.getAuthTokens().forEach(authToken -> {
+            authToken.setValid(false);
+            authTokenRepository.save(authToken);
         });
     }
 
@@ -385,6 +393,7 @@ public class UserService implements UserDetailsService {
         return new UsernameDto(user.getUsername());
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public JwtTokenDto verify2FaAndGetJwtToken(VerificationDto verificationDto) {
         validateCaptcha(verificationDto.getCaptchaToken());
 
@@ -392,9 +401,9 @@ public class UserService implements UserDetailsService {
 
         if(verificationCodeMatches) {
             User user = getUserByUsername(verificationDto.getUsername());
-            String jwtToken = jwtService.generateToken(user);
+            AuthToken jwtToken = jwtService.generateToken(user);
             JwtTokenDto jwtTokenDto = new JwtTokenDto();
-            jwtTokenDto.setJwtToken(jwtToken);
+            jwtTokenDto.setJwtToken(jwtToken.getToken());
             return jwtTokenDto;
         } else {
             throw new UnauthorizedException("Verification code does not match");
@@ -458,6 +467,13 @@ public class UserService implements UserDetailsService {
         Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.ASC, "userId");
         Page<User> usersPage = userRepository.getNotBannedUsers(searchUserDtoRequest.getUsername(), pageInfo);
         return usersToListBannedUnbannedUsersDto(usersPage);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void addAuthTokenAndInvalidateOthers(User user, AuthToken authToken) {
+        deactivateUserAuthenticationTokens(user);
+        user.getAuthTokens().add(authToken);
+        saveUser(user);
     }
 
     //TODO zkopirovane -> bude vubec potreba?

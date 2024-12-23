@@ -135,3 +135,9 @@ INSERT INTO authority (authority_name) values ('ADMIN');
 
 -- changeset Kuba:1734965094388-1
 ALTER TABLE user ADD banned BIT NULL;
+
+-- changeset Kuba:1734978194681-1
+CREATE TABLE auth_token (auth_token_id INT AUTO_INCREMENT NOT NULL, jwt_hash VARCHAR(255) NULL, valid BIT NULL, user_user_id INT NULL, CONSTRAINT auth_tokenPK PRIMARY KEY (auth_token_id));
+
+-- changeset Kuba:1734978194681-2
+ALTER TABLE auth_token ADD CONSTRAINT FKere73v3jning5og3pv82shkfb FOREIGN KEY (user_user_id) REFERENCES user (user_id);

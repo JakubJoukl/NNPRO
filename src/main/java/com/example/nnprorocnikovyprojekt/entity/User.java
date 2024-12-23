@@ -2,21 +2,16 @@ package com.example.nnprorocnikovyprojekt.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import liquibase.util.BooleanUtil;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "USER")
@@ -36,13 +31,16 @@ public class User implements UserDetails {
     @NotNull
     private String email;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
+    private List<AuthToken> authTokens = new ArrayList<>();
+
     @Column
     @Length(min = 12)
     @NotNull
     private String password;
 
     @Column
-    private Boolean banned;
+    private boolean banned;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     private List<PublicKey> publicKeys = new ArrayList<>();
@@ -190,6 +188,14 @@ public class User implements UserDetails {
         this.authorities = authorities;
     }
 
+    public List<AuthToken> getAuthTokens() {
+        return authTokens;
+    }
+
+    public void setAuthTokens(List<AuthToken> authTokens) {
+        this.authTokens = authTokens;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return UserDetails.super.isAccountNonExpired();
@@ -207,10 +213,14 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return BooleanUtils.isNotTrue(banned);
+        return !banned;
     }
 
     public void setBanned(Boolean banned) {
         this.banned = banned;
+    }
+
+    public AuthToken getActiveAuthToken() {
+        return authTokens.stream().filter(AuthToken::isValid).findFirst().orElse(null);
     }
 }
