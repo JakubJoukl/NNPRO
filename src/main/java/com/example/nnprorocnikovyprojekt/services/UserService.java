@@ -27,7 +27,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -38,8 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -338,22 +335,18 @@ public class UserService implements UserDetailsService {
             } else {
                 publicKeyDto = objectMapper.readValue(publicKeyString, PublicKeyDto.class);
             }
-            List<AuthorityDto> authorities = authoritiesToAuthoritiesDto(user.getAuthoritiesAsAuthority());
+            List<String> authorities = authoritiesToStringListOfAuthorities(user.getAuthoritiesAsAuthority());
             return new UserDto(user.getUsername(), user.getEmail(), publicKeyDto, authorities);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Could not parse key");
         }
     }
 
-    private List<AuthorityDto> authoritiesToAuthoritiesDto(List<Authority> authorities) {
-       List<AuthorityDto> authorityDtos = authorities.stream()
-               .map(this::authorityToAuthorityDto)
+    private List<String> authoritiesToStringListOfAuthorities(List<Authority> authorities) {
+       List<String> authorityDtos = authorities.stream()
+               .map(authority -> authority.getAuthorityName())
                .collect(Collectors.toList());
        return authorityDtos;
-    }
-
-    private AuthorityDto authorityToAuthorityDto(Authority authority) {
-        return new AuthorityDto(authority.getAuthorityName());
     }
 
     private ContactDto userToContactDto(User user, User contact) {
@@ -365,7 +358,7 @@ public class UserService implements UserDetailsService {
             } else {
                 publicKeyDto = objectMapper.readValue(publicKeyString, PublicKeyDto.class);
             }
-            List<AuthorityDto> authorityDtos = authoritiesToAuthoritiesDto(contact.getAuthoritiesAsAuthority());
+            List<String> authorityDtos = authoritiesToStringListOfAuthorities(contact.getAuthoritiesAsAuthority());
             return new ContactDto(contact.getUsername(), contact.getEmail(), publicKeyDto, user.getContacts().contains(contact), authorityDtos);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Could not parse key");

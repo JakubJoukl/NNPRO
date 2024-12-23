@@ -11,12 +11,12 @@ public class ContactDto {
 
     private Boolean alreadyAdded;
 
-    private List<AuthorityDto> authorities;
+    private List<String> authorities;
 
     public ContactDto() {
     }
 
-    public ContactDto(String username, String email, PublicKeyDto publicKey, Boolean alreadyAdded, List<AuthorityDto> authorities) {
+    public ContactDto(String username, String email, PublicKeyDto publicKey, Boolean alreadyAdded, List<String> authorities) {
         this.username = username;
         this.email = email;
         this.publicKey = publicKey;
@@ -57,11 +57,11 @@ public class ContactDto {
     }
 
 
-    public List<AuthorityDto> getAuthorities() {
+    public List<String> getAuthorities() {
         return authorities;
     }
 
-    public void setAuthorities(List<AuthorityDto> authorities) {
+    public void setAuthorities(List<String> authorities) {
         this.authorities = authorities;
     }
 }
