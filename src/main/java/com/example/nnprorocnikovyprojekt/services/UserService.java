@@ -355,7 +355,7 @@ public class UserService implements UserDetailsService {
 
     public ContactPageResponseDto searchUsers(SearchUserDtoRequest searchUserDtoRequest) {
         User user = getUserFromContext();
-        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "userId");
+        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.ASC, "userId");
         Page<User> usersPage = userRepository.findUsersByUsernameStartingWithAndUsernameNot(searchUserDtoRequest.getUsername(), user.getUsername(), pageInfo);
         return usersToUserPageResponseDto(usersPage, user);
     }
@@ -449,14 +449,14 @@ public class UserService implements UserDetailsService {
     }
 
     public ListBannedUnbannedUsersDto listBannedUsers(SearchUserDtoRequest searchUserDtoRequest) {
-        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "userId");
-        Page<User> usersPage = userRepository.getNotBannedUsers(searchUserDtoRequest.getUsername(), pageInfo);
+        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.ASC, "userId");
+        Page<User> usersPage = userRepository.getBannedUsers(searchUserDtoRequest.getUsername(), pageInfo);
         return usersToListBannedUnbannedUsersDto(usersPage);
     }
 
     public ListBannedUnbannedUsersDto listNotBannedUsers(SearchUserDtoRequest searchUserDtoRequest) {
-        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "userId");
-        Page<User> usersPage = userRepository.getBannedUsers(searchUserDtoRequest.getUsername(), pageInfo);
+        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.ASC, "userId");
+        Page<User> usersPage = userRepository.getNotBannedUsers(searchUserDtoRequest.getUsername(), pageInfo);
         return usersToListBannedUnbannedUsersDto(usersPage);
     }
 

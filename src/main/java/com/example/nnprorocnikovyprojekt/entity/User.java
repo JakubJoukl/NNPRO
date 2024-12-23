@@ -170,11 +170,20 @@ public class User implements UserDetails {
     }
 
     public void addAuthority(Authority authority) {
+        authority.getUsers().add(this);
         this.authorities.add(authority);
     }
 
     public boolean removeAuthority(String authorityName) {
-        return authorities.removeIf(authority -> authority.getAuthorityName().equals(authorityName));
+        Authority authorityToRemove = authorities.stream()
+                .filter(authority -> authority.getAuthorityName().equals(authorityName))
+                .findFirst().orElse(null);
+        if(authorityToRemove == null) return false;
+        else {
+            authorities.remove(authorityToRemove);
+            authorityToRemove.getUsers().remove(this);
+            return true;
+        }
     }
 
     public void setAuthorities(List<Authority> authorities) {
