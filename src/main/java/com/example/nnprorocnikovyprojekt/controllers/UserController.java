@@ -43,6 +43,32 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new GeneralResponseDto("User created"));
     }
 
+    @PostMapping("/banUser")
+    public ResponseEntity<?> banUser(@Valid @RequestBody UsernameDto usernameDto) {
+        userService.banUser(usernameDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User banned"));
+    }
+
+    @PostMapping("/unbanUser")
+    public ResponseEntity<?> unbanUser(@Valid @RequestBody UsernameDto usernameDto) {
+        userService.unbanUser(usernameDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User unbanned"));
+    }
+
+    @PostMapping("/addAdmin")
+    public ResponseEntity<?> addAdmin(@Valid @RequestBody UsernameDto usernameDto) {
+        userService.addAdminToUser(usernameDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Added ADMIN role to user"));
+    }
+
+    @PostMapping("/removeAdmin")
+    public ResponseEntity<?> removeAdmin(@Valid @RequestBody UsernameDto usernameDto) {
+        userService.removeAdminFromUser(usernameDto);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Revoked ADMIN role from user"));
+    }
+
+    //TODO list zabanovanych uzivatelu
+
     @PostMapping("/resetPassword")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDto authRequest) {
         userService.sendResetPassword(authRequest);

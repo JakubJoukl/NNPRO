@@ -1,5 +1,7 @@
 package com.example.nnprorocnikovyprojekt.security;
 
+import com.example.nnprorocnikovyprojekt.advice.exceptions.UnauthorizedException;
+import com.example.nnprorocnikovyprojekt.entity.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,6 +42,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // If the token is valid and no authentication is set in the context
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userService.loadUserByUsername(username);
+            if(!userDetails.isEnabled()) {
+                throw new UnauthorizedException("User is banned");
+            }
 
             // Validate token and set authentication
             if (jwtService.validateToken(token, userDetails)) {

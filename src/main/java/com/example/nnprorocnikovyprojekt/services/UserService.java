@@ -2,6 +2,7 @@ package com.example.nnprorocnikovyprojekt.services;
 
 
 import com.example.nnprorocnikovyprojekt.Utility.Utils;
+import com.example.nnprorocnikovyprojekt.advice.ControllerLogging;
 import com.example.nnprorocnikovyprojekt.advice.exceptions.NotFoundException;
 import com.example.nnprorocnikovyprojekt.advice.exceptions.UnauthorizedException;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
@@ -9,6 +10,7 @@ import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoResponse;
 import com.example.nnprorocnikovyprojekt.dtos.user.*;
 import com.example.nnprorocnikovyprojekt.entity.*;
 import com.example.nnprorocnikovyprojekt.external.CaptchaService;
+import com.example.nnprorocnikovyprojekt.repositories.AuthorityRepository;
 import com.example.nnprorocnikovyprojekt.repositories.ResetTokenRepository;
 import com.example.nnprorocnikovyprojekt.repositories.UserRepository;
 import com.example.nnprorocnikovyprojekt.repositories.VerificationCodeRepository;
@@ -17,15 +19,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -69,6 +75,11 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private AuthorityRepository authorityRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -136,9 +147,12 @@ public class UserService implements UserDetailsService {
         validateCaptcha(registrationRequest.getCaptchaToken());
 
         boolean alreadyExists = userRepository.getUserByUsername(registrationRequest.getUsername()).isPresent();
-        if(alreadyExists) return false;
-        else return userRepository.save(new User(registrationRequest.getUsername(), encryptPassword(registrationRequest.getPassword()), registrationRequest.getEmail()))
-                .getUserId() != null;
+        if(alreadyExists) throw new UnauthorizedException("User already exists");
+        User user = new User(registrationRequest.getUsername(), encryptPassword(registrationRequest.getPassword()), registrationRequest.getEmail());
+        Authority authority = authorityRepository.getAuthorityByAuthorityName("USER");
+        user.addAuthority(authority);
+        User savedUser = userRepository.save(user);
+        return savedUser.getUserId() != null;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -153,6 +167,55 @@ public class UserService implements UserDetailsService {
 
     public boolean userPasswordMatches(String password, User user){
         return passwordEncoder.matches(password, user.getPassword());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public void addAdminToUser(UsernameDto usernameDto) {
+        User userAddingAdminRole = getUserFromContext();
+        User userToAddAdminTo = getUserByUsername(usernameDto.getUsername());
+        if(userToAddAdminTo == null || userAddingAdminRole == null) throw new RuntimeException("Target user is null");
+        if(userToAddAdminTo.containsAuthority("ADMIN")) throw new RuntimeException("User is already admin");
+
+        userToAddAdminTo.addAuthority(authorityRepository.getAuthorityByAuthorityName("ADMIN"));
+        saveUser(userToAddAdminTo);
+        logger.debug("User " + userAddingAdminRole.getUsername() + " added admin role to " + usernameDto.getUsername());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public void removeAdminFromUser(UsernameDto usernameDto) {
+        User userAddingAdminRole = getUserFromContext();
+        User userToRemoveAdminFrom = getUserByUsername(usernameDto.getUsername());
+        if(userToRemoveAdminFrom == null || userAddingAdminRole == null) throw new RuntimeException("Target user is null");
+        if(!userToRemoveAdminFrom.containsAuthority("ADMIN")) throw new RuntimeException("User is NOT admin");
+
+        boolean removed = userToRemoveAdminFrom.removeAuthority("ADMIN");
+        if(!removed) throw new RuntimeException("Failed to remove role ADMIN");
+        saveUser(userToRemoveAdminFrom);
+        logger.debug("User " + userAddingAdminRole.getUsername() + " removed admin role from " + usernameDto.getUsername());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public void banUser(UsernameDto usernameDto) {
+        User userAddingAdminRole = getUserFromContext();
+        User userToBan = getUserByUsername(usernameDto.getUsername());
+        if(userToBan == null || userAddingAdminRole == null) throw new RuntimeException("Target user is null");
+        if(!userToBan.isEnabled()) throw new RuntimeException("User is already banned");
+
+        userToBan.setBanned(true);
+        saveUser(userToBan);
+        logger.debug("User " + userAddingAdminRole.getUsername() + " banned " + usernameDto.getUsername());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public void unbanUser(UsernameDto usernameDto) {
+        User userAddingAdminRole = getUserFromContext();
+        User userToBan = getUserByUsername(usernameDto.getUsername());
+        if(userToBan == null || userAddingAdminRole == null) throw new RuntimeException("Target user is null");
+        if(userToBan.isEnabled()) throw new RuntimeException("User is NOT banned");
+
+        userToBan.setBanned(false);
+        saveUser(userToBan);
+        logger.debug("User " + userAddingAdminRole.getUsername() + " unbanned " + usernameDto.getUsername());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -316,7 +379,8 @@ public class UserService implements UserDetailsService {
         boolean verificationCodeMatches = verifyVerificationCode(verificationDto.getUsername(), verificationDto.getVerificationCode());
 
         if(verificationCodeMatches) {
-            String jwtToken = jwtService.generateToken(verificationDto.getUsername());
+            User user = getUserByUsername(verificationDto.getUsername());
+            String jwtToken = jwtService.generateToken(user);
             JwtTokenDto jwtTokenDto = new JwtTokenDto();
             jwtTokenDto.setJwtToken(jwtToken);
             return jwtTokenDto;

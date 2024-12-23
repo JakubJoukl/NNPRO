@@ -111,3 +111,27 @@ ALTER TABLE user ADD CONSTRAINT UC_USERUSERNAME_COL UNIQUE (username);
 
 -- changeset Kuba:1734470421915-1
 ALTER TABLE conversation_user ADD encrypted_symmetric_key_added_on datetime(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL;
+
+-- changeset Kuba:1734959123530-1
+CREATE TABLE authority (authority_id INT AUTO_INCREMENT NOT NULL, authority_name VARCHAR(255) NULL, CONSTRAINT authorityPK PRIMARY KEY (authority_id));
+
+-- changeset Kuba:1734959123530-2
+CREATE TABLE user_authorities (authority_id INT NOT NULL, user_id INT NOT NULL);
+
+-- changeset Kuba:1734959123530-3
+ALTER TABLE authority ADD CONSTRAINT UC_AUTHORITYAUTHORITY_NAME_COL UNIQUE (authority_name);
+
+-- changeset Kuba:1734959123530-4
+ALTER TABLE user_authorities ADD CONSTRAINT FK2n9bab2v62l3y2jgu3qup4etw FOREIGN KEY (authority_id) REFERENCES authority (authority_id);
+
+-- changeset Kuba:1734959123530-5
+ALTER TABLE user_authorities ADD CONSTRAINT FKmj13d0mnuj4cd8b6htotbf9mm FOREIGN KEY (user_id) REFERENCES user (user_id);
+
+-- changeset Kuba:1734959123530-6
+INSERT INTO authority (authority_name) values ('USER');
+
+-- changeset Kuba:1734959123530-7
+INSERT INTO authority (authority_name) values ('ADMIN');
+
+-- changeset Kuba:1734965094388-1
+ALTER TABLE user ADD banned BIT NULL;

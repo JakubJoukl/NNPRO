@@ -1,11 +1,13 @@
 package com.example.nnprorocnikovyprojekt.security;
 
+import com.example.nnprorocnikovyprojekt.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -14,9 +16,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
-//TODO overovat validitu tokenu?
 public class JwtService {
 
     @Value("${application.security.jwt.secret-key}")
@@ -25,13 +27,12 @@ public class JwtService {
     @Value("${application.security.jwt.expiration}")
     private Long TOKEN_EXPIRATION;
 
-    // Generate token with given user name
-    public String generateToken(String userName) {
+    public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userName);
+        claims.put("authorities", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        return createToken(claims, user.getUsername());
     }
 
-    // Create a JWT token with specified claims and subject (user name)
     private String createToken(Map<String, Object> claims, String userName) {
         return Jwts.builder()
                 .setClaims(claims)

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import liquibase.util.BooleanUtil;
+import org.apache.commons.lang3.BooleanUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -39,6 +41,9 @@ public class User implements UserDetails {
     @NotNull
     private String password;
 
+    @Column
+    private Boolean banned;
+
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     private List<PublicKey> publicKeys = new ArrayList<>();
 
@@ -49,12 +54,17 @@ public class User implements UserDetails {
     private List<VerificationCode> verificationCodes = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "USER_CONTACT", joinColumns =
-    @JoinColumn(name = "USER_ID"), inverseJoinColumns = @JoinColumn(name = "CONTACT_USER_ID"))
+        @JoinTable(name = "USER_CONTACT",
+                joinColumns = @JoinColumn(name = "USER_ID"),
+                inverseJoinColumns = @JoinColumn(name = "CONTACT_USER_ID")
+    )
     private List<User> contacts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ConversationUser> conversationUsers = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
+    private List<Authority> authorities = new ArrayList<>();
 
     protected User() {
 
@@ -150,13 +160,25 @@ public class User implements UserDetails {
         this.verificationCodes = verificationCodes;
     }
 
-    /** implemented methods **/
-    //TODO pokud bude třeba tak přesunout do DB
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("USER"));
         return authorities;
+    }
+
+    public boolean containsAuthority(String authorityName) {
+        return authorities.stream().anyMatch(authority -> authority.getAuthority().equals(authorityName));
+    }
+
+    public void addAuthority(Authority authority) {
+        this.authorities.add(authority);
+    }
+
+    public boolean removeAuthority(String authorityName) {
+        return authorities.removeIf(authority -> authority.getAuthorityName().equals(authorityName));
+    }
+
+    public void setAuthorities(List<Authority> authorities) {
+        this.authorities = authorities;
     }
 
     @Override
@@ -176,6 +198,10 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return BooleanUtils.isNotTrue(banned);
+    }
+
+    public void setBanned(Boolean banned) {
+        this.banned = banned;
     }
 }
