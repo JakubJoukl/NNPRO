@@ -1,5 +1,7 @@
 package com.example.nnprorocnikovyprojekt.dtos.user;
 
+import java.util.List;
+
 public class UserDto {
     private String username;
 
@@ -7,13 +9,16 @@ public class UserDto {
 
     private PublicKeyDto publicKey;
 
+    private List<AuthorityDto> authorities;
+
     public UserDto() {
     }
 
-    public UserDto(String username, String email, PublicKeyDto publicKey) {
+    public UserDto(String username, String email, PublicKeyDto publicKey, List<AuthorityDto> authorities) {
         this.username = username;
         this.email = email;
         this.publicKey = publicKey;
+        this.authorities = authorities;
     }
 
     public String getUsername() {
@@ -38,5 +43,13 @@ public class UserDto {
 
     public void setPublicKey(PublicKeyDto publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public List<AuthorityDto> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(List<AuthorityDto> authorities) {
+        this.authorities = authorities;
     }
 }

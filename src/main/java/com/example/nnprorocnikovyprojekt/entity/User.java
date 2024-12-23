@@ -163,6 +163,10 @@ public class User implements UserDetails {
         return authorities;
     }
 
+    public List<Authority> getAuthoritiesAsAuthority() {
+        return authorities;
+    }
+
     public boolean containsAuthority(String authorityName) {
         return authorities.stream().anyMatch(authority -> authority.getAuthority().equals(authorityName));
     }
