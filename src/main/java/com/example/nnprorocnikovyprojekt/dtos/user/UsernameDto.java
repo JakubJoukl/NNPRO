@@ -1,10 +1,15 @@
 package com.example.nnprorocnikovyprojekt.dtos.user;
 
-import jakarta.validation.constraints.NotNull;
-
 public class UsernameDto {
-    @NotNull
     private String username;
+
+    public UsernameDto(String username) {
+        this.username = username;
+    }
+
+    public UsernameDto() {
+
+    }
 
     public String getUsername() {
         return username;

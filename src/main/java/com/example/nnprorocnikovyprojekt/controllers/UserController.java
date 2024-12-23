@@ -67,7 +67,17 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("Revoked ADMIN role from user"));
     }
 
-    //TODO list zabanovanych uzivatelu
+    @PostMapping("/listBannedUsers")
+    public ResponseEntity<?> listBannedUsers(@Valid @RequestBody SearchUserDtoRequest searchUserDtoRequest) {
+        ListBannedUnbannedUsersDto userPageResponseDto = userService.listBannedUsers(searchUserDtoRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(userPageResponseDto);
+    }
+
+    @PostMapping("/listNotBannedUsers")
+    public ResponseEntity<?> listNotBannedUsers(@Valid @RequestBody SearchUserDtoRequest searchUserDtoRequest) {
+        ListBannedUnbannedUsersDto userPageResponseDto = userService.listNotBannedUsers(searchUserDtoRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(userPageResponseDto);
+    }
 
     @PostMapping("/resetPassword")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDto authRequest) {

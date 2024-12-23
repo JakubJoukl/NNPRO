@@ -2,7 +2,6 @@ package com.example.nnprorocnikovyprojekt.services;
 
 
 import com.example.nnprorocnikovyprojekt.Utility.Utils;
-import com.example.nnprorocnikovyprojekt.advice.ControllerLogging;
 import com.example.nnprorocnikovyprojekt.advice.exceptions.NotFoundException;
 import com.example.nnprorocnikovyprojekt.advice.exceptions.UnauthorizedException;
 import com.example.nnprorocnikovyprojekt.dtos.pageinfo.PageInfoDtoRequest;
@@ -31,7 +30,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -373,6 +371,20 @@ public class UserService implements UserDetailsService {
         return contactPageResponseDto;
     }
 
+    private ListBannedUnbannedUsersDto usersToListBannedUnbannedUsersDto(Page<User> page){
+        if(page == null) return null;
+        List<UsernameDto> usernameDtos = page.getContent().stream().map(this::userToUsernameDto).collect(Collectors.toList());
+
+        ListBannedUnbannedUsersDto listBannedUnbannedUsersDto = new ListBannedUnbannedUsersDto();
+        listBannedUnbannedUsersDto.setItemList(usernameDtos);
+        listBannedUnbannedUsersDto.setPageInfoDto(new PageInfoDtoResponse(page.getSize(), page.getSize(), page.getTotalElements()));
+        return listBannedUnbannedUsersDto;
+    }
+
+    private UsernameDto userToUsernameDto(User user) {
+        return new UsernameDto(user.getUsername());
+    }
+
     public JwtTokenDto verify2FaAndGetJwtToken(VerificationDto verificationDto) {
         validateCaptcha(verificationDto.getCaptchaToken());
 
@@ -434,6 +446,18 @@ public class UserService implements UserDetailsService {
         if(!captchaIsValid) {
             throw new UnauthorizedException("Captcha is not valid");
         }
+    }
+
+    public ListBannedUnbannedUsersDto listBannedUsers(SearchUserDtoRequest searchUserDtoRequest) {
+        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "userId");
+        Page<User> usersPage = userRepository.getNotBannedUsers(searchUserDtoRequest.getUsername(), pageInfo);
+        return usersToListBannedUnbannedUsersDto(usersPage);
+    }
+
+    public ListBannedUnbannedUsersDto listNotBannedUsers(SearchUserDtoRequest searchUserDtoRequest) {
+        Pageable pageInfo = PageRequest.of(searchUserDtoRequest.getPageInfo().getPageIndex(), searchUserDtoRequest.getPageInfo().getPageSize()).withSort(Sort.Direction.DESC, "userId");
+        Page<User> usersPage = userRepository.getBannedUsers(searchUserDtoRequest.getUsername(), pageInfo);
+        return usersToListBannedUnbannedUsersDto(usersPage);
     }
 
     //TODO zkopirovane -> bude vubec potreba?
