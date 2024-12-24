@@ -498,6 +498,14 @@ public class UserService implements UserDetailsService {
         saveUser(user);
     }
 
+    public void logout() {
+        User user = getUserFromContext();
+        user.getAuthTokens().stream()
+                .filter(AuthToken::isValid)
+                .forEach(authToken -> authToken.setValid(false));
+        saveUser(user);
+    }
+
     //TODO zkopirovane -> bude vubec potreba?
     /*
     public UserDto convertToDto(User user) {

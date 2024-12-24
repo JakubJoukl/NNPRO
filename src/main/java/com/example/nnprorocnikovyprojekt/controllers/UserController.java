@@ -126,4 +126,10 @@ public class UserController {
         ContactPageResponseDto responseUserDto = userService.searchUsers(searchUserDtoRequest);
         return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
     }
+
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(){
+        userService.logout();
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User logged out"));
+    }
 }
