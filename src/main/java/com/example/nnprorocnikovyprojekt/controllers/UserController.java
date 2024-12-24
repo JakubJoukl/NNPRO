@@ -127,7 +127,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(responseUserDto);
     }
 
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public ResponseEntity<?> logout(){
         userService.logout();
         return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponseDto("User logged out"));
